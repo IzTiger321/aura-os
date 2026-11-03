@@ -20,7 +20,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #desktop{position:absolute;inset:44px 0 62px;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,var(--cell));grid-auto-rows:calc(var(--cell) + 10px);gap:8px;align-content:start;overflow:auto;background-size:cover;background-position:center}
 #topbar,#dock{position:absolute;left:0;right:0;z-index:1000;background:rgba(var(--p),.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:0 solid rgba(var(--l),.12)}
-#topbar{top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom-width:1px;font-size:12px;padding-top:env(safe-area-inset-top)}
+#topbar{top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom-width:1px;font-size:12px}
 #dock{bottom:0;height:62px;display:flex;align-items:center;gap:8px;border-top-width:1px;padding:0 10px env(safe-area-inset-bottom)}
 #taskbar{display:flex;gap:6px;align-items:center;overflow-x:auto;flex:1;justify-content:center;scrollbar-width:none}
 .tb{background:none;border:0;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px}
@@ -33,7 +33,6 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .task-button{width:42px;height:42px;flex:0 0 auto;border:0;border-radius:10px;background:rgba(var(--l),.1);position:relative}
 .task-button.active{background:rgba(var(--l),.25)}
 .task-button.active::after{content:"";position:absolute;bottom:3px;left:50%;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--accent)}
-.task-button img{width:22px;height:22px;object-fit:contain}
 #windowLayer{position:absolute;inset:44px 0 62px;pointer-events:none;z-index:10;overflow:hidden}
 .window{position:absolute;display:flex;flex-direction:column;min-width:260px;min-height:190px;max-width:100%;max-height:100%;pointer-events:auto;overflow:hidden;border:1px solid rgba(var(--l),.2);border-radius:var(--rad);background:rgba(var(--p),var(--op));backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 20px 55px rgba(0,0,0,.4);font-size:var(--fs)}
 .anim .window{animation:pop .16s ease-out}
@@ -59,7 +58,7 @@ select.ui option{color:#000}
 .pad{padding:14px}
 .muted{color:var(--muted);font-size:11px}
 #startMenu{position:absolute;z-index:1100;bottom:70px;left:10px;width:min(400px,calc(100vw - 20px));max-height:calc(100% - 130px);overflow:auto;padding:14px;border-radius:16px;border:1px solid rgba(var(--l),.18);background:rgba(var(--p),.97);backdrop-filter:blur(25px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
-#startMenu[hidden],#ctx[hidden]{display:none}
+#startMenu[hidden]{display:none}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
 .start-app{padding:10px 2px;border:0;border-radius:10px;background:transparent;min-width:0;text-align:center}
 .start-app:hover{background:rgba(var(--l),.12)}
@@ -67,7 +66,8 @@ select.ui option{color:#000}
 .start-app img{width:28px;height:28px;object-fit:contain;display:block;margin:0 auto 6px}
 .start-app span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #toast{position:absolute;z-index:3000;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 15px;border-radius:10px;background:#111827;color:#f8fafc;border:1px solid rgba(255,255,255,.2);font-size:12px;display:none;max-width:90%}
-.bar{display:flex;gap:5px;padding:7px;background:rgba(0,0,0,.18);border-bottom:1px solid rgba(var(--l),.1)}
+.bar{display:flex;flex-wrap:wrap;gap:5px;padding:7px;background:rgba(0,0,0,.18);border-bottom:1px solid rgba(var(--l),.1)}
+.bar input.ui{flex:1;min-width:120px;width:auto}
 .wv{flex:1;min-height:0;position:relative;background:#fff}
 .wv iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
 .start{position:absolute;inset:0;overflow:auto;padding:24px 14px;background:rgba(var(--p),1);text-align:center}
@@ -89,15 +89,13 @@ select.ui option{color:#000}
 .li{display:flex;align-items:center;gap:9px;padding:8px;margin:6px 0;border:1px solid rgba(var(--l),.12);border-radius:9px}
 .li .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .li img{width:26px;height:26px;object-fit:contain}
-.term{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.35);color:#e2e8f0;flex:1;overflow:auto;padding:10px;white-space:pre-wrap;word-break:break-word}
-.term input{background:none;border:0;outline:0;width:70%;font:inherit;color:inherit}
 @media(max-width:650px){.set{flex-direction:column}.set nav{width:100%;display:flex;border-right:0;border-bottom:1px solid rgba(var(--l),.1);overflow-x:auto}.set nav button{width:auto;white-space:nowrap}.grid4{grid-template-columns:repeat(3,1fr)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body class="anim">
 
-<header id="topbar">
+<header id="topbar" style="padding-top:env(safe-area-inset-top)">
   <div class="row" style="gap:10px;min-width:0">
     <button class="tb" onclick="toggleStart()" style="font-weight:700"><i class="fa-solid fa-layer-group" style="color:var(--accent)"></i>AuraOS</button>
     <span style="opacity:.4">|</span><span id="activeTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Desktop</span>
@@ -105,7 +103,7 @@ select.ui option{color:#000}
   <div class="row" style="gap:6px">
     <span id="clock"></span>
     <button class="tb" id="fsBtn" onclick="toggleFS()" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
-    <button class="tb" onclick="powerMenu()" title="Power" style="color:#f87171"><i class="fa-solid fa-power-off"></i></button>
+    <button class="tb" onclick="if(confirm('Exit AuraOS?'))exitOS()" title="Exit" style="color:#f87171"><i class="fa-solid fa-power-off"></i></button>
   </div>
 </header>
 
@@ -149,15 +147,14 @@ const DEF={theme:"dark",accent:"#6366f1",wallpaper:DEF_WP,opacity:.92,blur:18,ra
  exitUrl:"https://sites.google.com/view/70u0j2glsd19/07Z19U53QSYS"};
 let S={...DEF,...ls("settings",{})};
 let apps=ls("apps",null);
-if(!Array.isArray(apps)){ // migrate from v5
+if(!Array.isArray(apps)){
   try{apps=JSON.parse(localStorage.getItem("auraos_v5_apps")||"[]")}catch{apps=[]}
   if(!Array.isArray(apps))apps=[];
 }
 let files=ls("files",null);
 if(!Array.isArray(files)){files=[];
   try{const n=JSON.parse(localStorage.getItem("auraos_v5_notes")||'""');if(n)files.push({id:uid(),name:"Notes.txt",mime:"text/plain",text:true,data:n,mtime:Date.now()})}catch{}}
-let tasks=ls("tasks",[]);
-const saveS=()=>ss("settings",S), saveApps=()=>ss("apps",apps), saveFiles=()=>{const ok=ss("files",files);dispatchEvent(new Event("fs"));return ok}, saveTasks=()=>ss("tasks",tasks);
+const saveS=()=>ss("settings",S), saveApps=()=>ss("apps",apps), saveFiles=()=>{const ok=ss("files",files);dispatchEvent(new Event("fs"));return ok};
 const W={};let Z=100;
 
 function applySettings(){
@@ -177,12 +174,9 @@ const BUILTIN=[
  {id:"browser",name:"Browser",fa:"fa-solid fa-globe",color:"#fb923c",init:(b,w,a)=>webview(b,w,{url:a.url||S.home,mode:S.embedDefault})},
  {id:"files",name:"Files",fa:"fa-solid fa-folder-open",color:"#60a5fa",init:initFiles},
  {id:"editor",name:"Editor",fa:"fa-solid fa-file-pen",color:"#fbbf24",init:initEditor},
- {id:"calculator",name:"Calculator",fa:"fa-solid fa-calculator",color:"#34d399",init:initCalc},
- {id:"tasks",name:"Tasks",fa:"fa-solid fa-list-check",color:"#f472b6",init:initTasks},
  {id:"clock",name:"Clock",fa:"fa-regular fa-clock",color:"#a78bfa",init:initClock},
  {id:"paint",name:"Paint",fa:"fa-solid fa-paintbrush",color:"#f87171",init:initPaint},
  {id:"media",name:"Media",fa:"fa-solid fa-circle-play",color:"#22d3ee",init:initMedia},
- {id:"terminal",name:"Terminal",fa:"fa-solid fa-terminal",color:"#4ade80",init:initTerm},
  {id:"store",name:"App Store",fa:"fa-solid fa-bag-shopping",color:"#818cf8",init:initStore},
  {id:"settings",name:"Settings",fa:"fa-solid fa-gear",color:"#cbd5e1",init:initSettings}
 ];
@@ -196,9 +190,10 @@ const CATALOG=[
 ];
 const allApps=()=>[...BUILTIN,...apps];
 const getApp=id=>allApps().find(a=>a.id===id);
-function iconHTML(a,size){const st=size?`style="${a.custom?`width:${size}px;height:${size}px`:`font-size:${size}px`}"`:"";
-  return a.custom?`<img class="ico" ${st} src="${esc(a.icon||fallbackIcon)}" alt="" onerror="this.onerror=null;this.src='${fallbackIcon}'">`
-  :`<i class="${esc(a.fa)}" ${st} style="color:${a.color};${size?`font-size:${size}px`:""}"></i>`}
+function iconHTML(a,size){
+  if(a.custom)return`<img class="ico" ${size?`style="width:${size}px;height:${size}px"`:""} src="${esc(a.icon||fallbackIcon)}" alt="" onerror="this.onerror=null;this.src='${fallbackIcon}'">`;
+  return`<i class="${esc(a.fa)}" style="color:${a.color};${size?`font-size:${size}px`:""}"></i>`;
+}
 
 /* ---------- DESKTOP / START / TASKBAR ---------- */
 const coarse=matchMedia("(pointer:coarse)").matches;
@@ -228,7 +223,6 @@ function closeStart(){$("#startMenu").hidden=true}
 document.addEventListener("pointerdown",e=>{if(!e.target.closest("#startMenu,#dock,#topbar"))closeStart()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeStart()});
 function exitOS(){if(S.exitUrl&&validURL(S.exitUrl))location.href=S.exitUrl;else location.reload()}
-function powerMenu(){toggleStart()}
 function toggleFS(){const d=document,r=d.documentElement;
   if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
   else(r.requestFullscreen||r.webkitRequestFullscreen||(()=>toast("Fullscreen not supported on this device"))).call(r)}
@@ -258,7 +252,8 @@ function openApp(id,args={},key=id){
   win.addEventListener("pointerdown",()=>focusWin(key),true);
   drag(win);resize(win);
   $("#windowLayer").appendChild(win);W[key]=win;
-  try{app.init($(".win-body",win),win,args,app)}catch(e){console.error(e);$(".win-body",win).textContent="This app crashed: "+e.message}
+  const init=app.init||((b,w)=>webview(b,w,{url:app.url,mode:app.mode,fixed:app.url}));
+  try{init($(".win-body",win),win,args,app)}catch(e){console.error(e);$(".win-body",win).textContent="This app crashed: "+e.message}
   focusWin(key);
 }
 function focusWin(k){const w=W[k];if(!w)return;Z++;Object.values(W).forEach(x=>x.classList.remove("active"));w.classList.add("active");w.style.zIndex=Z;
@@ -291,7 +286,7 @@ function resize(win){
 const onResize=()=>document.body.classList.toggle("mob",innerWidth<650);
 addEventListener("resize",onResize);onResize();
 
-/* ---------- WEB VIEW (Browser + installed web apps) ---------- */
+/* ---------- BROWSER + INSTALLED WEB APPS ---------- */
 function resolveInput(raw){
   raw=raw.trim();if(!raw)return null;
   if(/^https?:\/\//i.test(raw))return validURL(raw);
@@ -301,11 +296,14 @@ function resolveInput(raw){
 function webview(body,win,{url,mode,fixed}){
   let viaProxy=mode==="proxy",hist=[],idx=-1,cur="";
   body.innerHTML=`<div class="bar"><button class="sec" data-a="b" title="Back"><i class="fa-solid fa-arrow-left"></i></button><button class="sec" data-a="f" title="Forward"><i class="fa-solid fa-arrow-right"></i></button><button class="sec" data-a="r" title="Reload"><i class="fa-solid fa-rotate-right"></i></button><button class="sec" data-a="h" title="Home"><i class="fa-solid fa-house"></i></button>
-   <input class="ui" placeholder="Search or enter address" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" data-a="g">Go</button></div>
+   <input class="ui" placeholder="Search or enter address" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" data-a="g">Go</button>
+   <button class="sec" data-a="x" title="Launch this page in a separate browser tab"><i class="fa-solid fa-arrow-up-right-from-square"></i> Launch</button>
+   <button class="sec" data-a="i" title="Install this page as an AuraOS app"><i class="fa-solid fa-plus"></i> Install</button></div>
    <div class="wv"><iframe title="Web view" referrerpolicy="no-referrer" allow="fullscreen;autoplay;clipboard-write;geolocation;microphone;camera;encrypted-media" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-presentation"></iframe><div class="start" hidden></div></div>
-   <div class="hint"><span>Blank or refused? That site forbids embedding.</span><button data-a="p"></button><button data-a="x">Open in new tab</button></div>`;
+   <div class="hint"><span>Blank or refused? That site forbids embedding. Use Launch, or turn on the proxy:</span><button data-a="p"></button></div>`;
   const inp=$("input",body),fr=$("iframe",body),st=$(".start",body),pb=$('[data-a=p]',body);
   const setP=()=>pb.textContent=viaProxy?"Proxy: ON":"Proxy: OFF";setP();
+  const real=()=>cur&&cur!=="aura://start";
   function target(u){if(!viaProxy)return u;if(!S.proxy||!S.proxy.includes("{url}")){toast("Set a proxy in Settings → Browser first");return u}return S.proxy.replace("{url}",encodeURIComponent(u))}
   function showStart(){
     st.hidden=false;fr.removeAttribute("src");inp.value="";cur="aura://start";
@@ -317,17 +315,20 @@ function webview(body,win,{url,mode,fixed}){
     if(raw==="aura://start"){if(rec){hist=hist.slice(0,idx+1);hist.push(raw);idx=hist.length-1}return showStart()}
     const u=resolveInput(raw);if(!u)return toast("Enter a valid address");
     st.hidden=true;cur=u;inp.value=u;fr.src=target(u);
-    win.setTitle&&!fixed&&win.setTitle("Browser");
     if(rec){hist=hist.slice(0,idx+1);hist.push(u);idx=hist.length-1}
   }
   body.addEventListener("click",e=>{const a=e.target.closest("[data-a]")?.dataset.a;if(!a)return;
     if(a==="g")go(inp.value);
     if(a==="b"){if(idx>0){idx--;go(hist[idx],false)}else toast("No previous page")}
     if(a==="f"){if(idx<hist.length-1){idx++;go(hist[idx],false)}else toast("No next page")}
-    if(a==="r"){if(cur&&cur!=="aura://start")fr.src=target(cur)}
+    if(a==="r"){if(real())fr.src=target(cur)}
     if(a==="h")go(fixed||S.home);
-    if(a==="p"){viaProxy=!viaProxy;setP();if(cur&&cur!=="aura://start")fr.src=target(cur)}
-    if(a==="x"&&cur&&cur!=="aura://start")window.open(cur,"_blank","noopener")});
+    if(a==="p"){viaProxy=!viaProxy;setP();if(real())fr.src=target(cur)}
+    if(a==="x"){if(real())window.open(cur,"_blank","noopener");else toast("Open a page first")}
+    if(a==="i"){if(!real())return toast("Open a page first");
+      if(apps.some(x=>x.url===cur))return toast("Already installed");
+      let n="";try{n=new URL(cur).hostname.replace(/^(www|m|en\.m)\./,"")}catch{}
+      n=(prompt("Name for this app",n)||"").trim();if(n)installApp(n,cur,"",viaProxy?"proxy":"direct")}});
   inp.onkeydown=e=>{if(e.key==="Enter")go(inp.value)};
   go(url||S.home);
 }
@@ -383,47 +384,6 @@ function initEditor(b,win,args){
   $("#es",b).onclick=save;
   $("#ed",b).onclick=()=>download(n.value||"Untitled.txt",new Blob([a.value],{type:"text/plain;charset=utf-8"}));
   b.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="s"){e.preventDefault();save()}});
-  const orig=closeWin;
-}
-
-/* ---------- CALCULATOR ---------- */
-function calc(s){
-  const t=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/\s/g,"");let i=0;
-  const num=()=>{if(t[i]==="("){i++;const v=expr();if(t[i]!==")")throw 0;i++;return v}
-    if(t[i]==="-"){i++;return-num()}if(t[i]==="+"){i++;return num()}
-    const m=/^(\d+\.?\d*|\.\d+)/.exec(t.slice(i));if(!m)throw 0;i+=m[0].length;return parseFloat(m[0])};
-  const term=()=>{let v=num();while("*/%".includes(t[i]||"#")){const o=t[i++],r=num();v=o==="*"?v*r:o==="/"?v/r:v%r}return v};
-  const expr=()=>{let v=term();while("+-".includes(t[i]||"#")){const o=t[i++],r=term();v=o==="+"?v+r:v-r}return v};
-  const r=expr();if(i!==t.length||!isFinite(r))throw 0;return r;
-}
-function initCalc(b){
-  b.innerHTML=`<div style="max-width:340px;width:100%;margin:auto;padding:14px" tabindex="0" id="cw"><input id="cd" class="ui" readonly value="0" style="font-size:24px;text-align:right;margin-bottom:6px"><div class="muted" id="ch" style="text-align:right;min-height:16px;margin-bottom:8px"></div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">${["C","(",")","÷","7","8","9","×","4","5","6","−","1","2","3","+","0",".","⌫","="].map(v=>`<button class="sec" data-v="${v}" style="padding:14px">${v}</button>`).join("")}</div></div>`;
-  const d=$("#cd",b),h=$("#ch",b);let ex="0";
-  function press(v){
-    if(v==="C"){ex="0";h.textContent=""}
-    else if(v==="⌫")ex=ex.length>1&&ex!=="Error"?ex.slice(0,-1):"0";
-    else if(v==="="){try{const r=calc(ex);h.textContent=ex+" =";ex=String(+r.toFixed(10))}catch{ex="Error"}}
-    else ex=(ex==="0"&&!/[.]/.test(v)||ex==="Error")?v:ex+v;
-    d.value=ex}
-  b.addEventListener("click",e=>{const v=e.target.closest("[data-v]")?.dataset.v;if(v)press(v)});
-  $("#cw",b).addEventListener("keydown",e=>{const m={"*":"×","/":"÷","-":"−",Enter:"=","=":"=",Backspace:"⌫",Escape:"C",Delete:"C"};const k=m[e.key]||e.key;
-    if(/^[0-9+().]$/.test(k)||"×÷−=⌫C".includes(k)&&k.length===1){e.preventDefault();press(k)}});
-}
-
-/* ---------- TASKS ---------- */
-function initTasks(b,win){
-  b.innerHTML=`<div class="bar"><input class="ui" placeholder="Add a task and press Enter"><button class="btn">Add</button></div><div class="pad" style="overflow:auto"></div><div class="hint"></div>`;
-  const inp=$("input",b),box=$(".pad",b),ft=$(".hint",b);
-  function draw(){box.innerHTML=tasks.length?"":'<div class="muted">Nothing to do. Enjoy!</div>';
-    tasks.forEach(t=>{const r=document.createElement("div");r.className="li";
-      r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} style="width:18px;height:18px"><div class="grow" style="${t.done?"text-decoration:line-through;opacity:.5":""}">${esc(t.text)}</div><button class="danger"><i class="fa-solid fa-xmark"></i></button>`;
-      $("input",r).onchange=e=>{t.done=e.target.checked;saveTasks();draw()};
-      $("button",r).onclick=()=>{tasks=tasks.filter(x=>x!==t);saveTasks();draw()};box.appendChild(r)});
-    ft.innerHTML=`<span>${tasks.filter(t=>!t.done).length} remaining</span>`+(tasks.some(t=>t.done)?'<button>Clear completed</button>':"");
-    const c=$("button",ft);if(c)c.onclick=()=>{tasks=tasks.filter(t=>!t.done);saveTasks();draw()}}
-  const add=()=>{const v=inp.value.trim();if(v){tasks.push({text:v,done:false});saveTasks();inp.value="";draw()}};
-  $(".btn",b).onclick=add;inp.onkeydown=e=>{if(e.key==="Enter")add()};draw();
 }
 
 /* ---------- CLOCK ---------- */
@@ -450,13 +410,13 @@ function initClock(b,win){
 
 /* ---------- PAINT ---------- */
 function initPaint(b,win){
-  b.innerHTML=`<div class="bar" style="flex-wrap:wrap"><input type="color" id="pc" value="#ffffff" style="width:40px;height:36px;border:0;background:none"><input type="range" id="ps" min="1" max="60" value="5" style="width:90px"><button class="sec" id="pe">Eraser</button><button class="sec" id="pk">Clear</button><button class="sec" id="pv"><i class="fa-solid fa-floppy-disk"></i> Save to Files</button><button class="sec" id="pd"><i class="fa-solid fa-download"></i></button></div><div style="flex:1;min-height:0;overflow:auto;display:flex"><canvas id="cv" width="1000" height="650" style="width:100%;max-width:100%;height:auto;margin:auto;touch-action:none;background:#0f172a;cursor:crosshair"></canvas></div>`;
+  b.innerHTML=`<div class="bar"><input type="color" id="pc" value="#ffffff" style="width:40px;height:36px;border:0;background:none"><input type="range" id="ps" min="1" max="60" value="5" style="width:90px"><button class="sec" id="pe">Eraser</button><button class="sec" id="pk">Clear</button><button class="sec" id="pv"><i class="fa-solid fa-floppy-disk"></i> Save to Files</button><button class="sec" id="pd" title="Download"><i class="fa-solid fa-download"></i></button></div><div style="flex:1;min-height:0;overflow:auto;display:flex"><canvas id="cv" width="1000" height="650" style="width:100%;max-width:100%;height:auto;margin:auto;touch-action:none;background:#0f172a;cursor:crosshair"></canvas></div>`;
   const c=$("#cv",b),x=c.getContext("2d");x.fillStyle="#0f172a";x.fillRect(0,0,c.width,c.height);x.lineCap=x.lineJoin="round";
   let on=false,er=false,lx,ly;const pos=e=>{const r=c.getBoundingClientRect();return[(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]};
-  c.onpointerdown=e=>{on=true;[lx,ly]=pos(e);c.setPointerCapture(e.pointerId);draw(e)};
   const draw=e=>{const[px,py]=pos(e);x.strokeStyle=er?"#0f172a":$("#pc",b).value;x.lineWidth=+$("#ps",b).value;x.beginPath();x.moveTo(lx,ly);x.lineTo(px+.01,py);x.stroke();lx=px;ly=py};
+  c.onpointerdown=e=>{on=true;[lx,ly]=pos(e);c.setPointerCapture(e.pointerId);draw(e)};
   c.onpointermove=e=>{if(on)draw(e)};c.onpointerup=c.onpointercancel=()=>on=false;
-  $("#pe",b).onclick=e=>{er=!er;e.target.style.background=er?"var(--accent)":""};
+  $("#pe",b).onclick=e=>{er=!er;e.currentTarget.style.background=er?"var(--accent)":""};
   $("#pk",b).onclick=()=>{x.fillStyle="#0f172a";x.fillRect(0,0,c.width,c.height)};
   $("#pd",b).onclick=()=>download("drawing.png",c.toDataURL("image/png"));
   $("#pv",b).onclick=()=>{files.push({id:uid(),name:uniqueName("drawing.png"),mime:"image/png",text:false,data:c.toDataURL("image/png"),mtime:Date.now()});if(saveFiles())toast("Saved to Files")};
@@ -477,7 +437,7 @@ function initMedia(b,win,args){
     const m=$("audio,video",st);if(m)m.onended=()=>{const i=list.indexOf(it);if(list[i+1])play(list[i+1])}}
   function draw(){pl.innerHTML=list.map((it,i)=>`<div class="li" data-i="${i}" style="cursor:pointer"><i class="fa-solid fa-play"></i><div class="grow">${esc(it.name)}</div></div>`).join("");
     $$("[data-i]",pl).forEach(r=>r.onclick=()=>play(list[+r.dataset.i]))}
-  $("input[type=file]",b).onchange=e=>{[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);list.push({name:f.name,src:u,type:f.type||"audio/"})});draw();if(list[0])play(list[list.length-e.target.files.length]);e.target.value=""};
+  $("input[type=file]",b).onchange=e=>{const n=e.target.files.length;[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);list.push({name:f.name,src:u,type:f.type||"audio/"})});draw();if(n)play(list[list.length-n]);e.target.value=""};
   function link(v){v=v.trim();if(!validURL(v))return toast("Enter a valid link");
     const y=v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
     const it=y?{name:"YouTube video",yt:"https://www.youtube.com/embed/"+y[1]+"?autoplay=1"}:{name:v.split("/").pop()||v,src:v,type:/\.(mp4|webm|ogv|mov)(\?|$)/i.test(v)?"video/":/\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(v)?"image/":"audio/"};
@@ -487,43 +447,12 @@ function initMedia(b,win,args){
   win.onArgs(args);
 }
 
-/* ---------- TERMINAL ---------- */
-function initTerm(b,win){
-  b.innerHTML=`<div class="term" id="t"></div>`;const t=$("#t",b);let hist=[],hi=0;
-  const out=s=>{t.insertBefore(document.createTextNode(s+"\n"),$("#line",t))};
-  t.innerHTML=`<span id="line">$ <input id="ti" autocomplete="off" autocapitalize="off" spellcheck="false"></span>`;
-  const inp=$("#ti",t);t.onclick=()=>inp.focus();
-  out("AuraOS terminal. Type 'help'.");
-  const cmds={
-   help:()=>"Commands: help ls cat rm touch echo open apps date theme accent wallpaper clear whoami fullscreen",
-   ls:()=>files.map(f=>f.name).join("\n")||"(no files)",
-   cat:a=>{const f=files.find(x=>x.name===a.join(" "));return f?(isText(f)?f.data:"(binary file)"):"No such file"},
-   rm:a=>{const n=files.length;files=files.filter(x=>x.name!==a.join(" "));saveFiles();return n>files.length?"Removed":"No such file"},
-   touch:a=>{const n=a.join(" ");if(!n)return"Usage: touch name";files.push({id:uid(),name:uniqueName(n),mime:"text/plain",text:true,data:"",mtime:Date.now()});saveFiles();return"Created"},
-   echo:a=>a.join(" "),
-   open:a=>{const q=a.join(" ").toLowerCase(),x=allApps().find(p=>p.id===q||p.name.toLowerCase()===q);if(!x)return"Unknown app";openApp(x.id);return"Opening "+x.name},
-   apps:()=>allApps().map(a=>a.name).join(", "),
-   date:()=>new Date().toString(),
-   whoami:()=>"user@auraos",
-   theme:a=>{if(!["dark","light"].includes(a[0]))return"Usage: theme dark|light";S.theme=a[0];saveS();applySettings();return"OK"},
-   accent:a=>{if(!/^#[0-9a-f]{6}$/i.test(a[0]||""))return"Usage: accent #rrggbb";S.accent=a[0];saveS();applySettings();return"OK"},
-   wallpaper:a=>{if(!validURL(a[0]))return"Usage: wallpaper https://image-url";S.wallpaper=a[0];saveS();applySettings();return"OK"},
-   fullscreen:()=>{toggleFS();return""},
-   clear:()=>{$$("#t",b).forEach(()=>{});t.childNodes.forEach(n=>{if(n.nodeType===3)n.remove()});return""}};
-  inp.onkeydown=e=>{
-    if(e.key==="Enter"){const v=inp.value.trim();out("$ "+v);inp.value="";if(v){hist.push(v);hi=hist.length;const[c,...a]=v.split(/\s+/);const r=cmds[c]?cmds[c](a):"Command not found: "+c;if(r)out(r)}t.scrollTop=t.scrollHeight}
-    if(e.key==="ArrowUp"){hi=Math.max(0,hi-1);inp.value=hist[hi]||"";e.preventDefault()}
-    if(e.key==="ArrowDown"){hi=Math.min(hist.length,hi+1);inp.value=hist[hi]||""}};
-  setTimeout(()=>{if(!coarse)inp.focus()},50);
-}
-
 /* ---------- APP STORE ---------- */
 function installApp(name,url,icon,mode){
   const u=validURL(url);if(!name||!u)return toast("Enter a valid name and URL");
   apps.push({id:"web_"+uid(),name:name.slice(0,40),url:u,icon:validURL(icon||"")||favicon(u),custom:true,mode:mode||"direct"});
   saveApps();renderDesktop();dispatchEvent(new Event("apps"));toast(name+" installed");
 }
-BUILTIN.forEach(a=>a);
 function initStore(b,win){
   b.innerHTML=`<div class="pad" style="overflow:auto"><h3 style="margin:0 0 4px">Featured web apps</h3><div class="muted">These sites usually allow embedding. Installed apps run inside AuraOS windows.</div><div id="cat"></div>
   <h3 style="margin:18px 0 6px">Install any website</h3><div class="muted" style="margin-bottom:8px">Sites that block embedding need a proxy (Settings → Browser).</div>
@@ -553,33 +482,33 @@ function initSettings(b,win){
    win:()=>`<div class="grp"><h3>Windows</h3><label>Transparency</label>${rng("opacity",.4,1,.02)}<label>Background blur</label>${rng("blur",0,40,1)}<label>Corner radius</label>${rng("rad",0,28,1)}<label>Text size</label>${rng("fs",11,20,1)}<label>&nbsp;</label>${chk("anim","Window animations")}</div>`,
    desk:()=>`<div class="grp"><h3>Desktop</h3><label>Icon size</label>${rng("iconSize",24,64,2)}<label>&nbsp;</label>${chk("showLabels","Show icon labels")}<label>Open apps with</label>${sel("openMode",[["auto","Automatic (tap on touch, double-click on mouse)"],["single","Single click / tap"],["double","Double click"]])}</div>
      <div class="grp"><h3>Clock</h3>${chk("clock24","24-hour time")}<label>&nbsp;</label>${chk("seconds","Show seconds")}</div>`,
-   web:()=>`<div class="grp"><h3>Browser</h3><label>Search engine (use %s for the query)</label><input class="ui" data-k="search" value="${esc(S.search)}"><div class="muted">Many search engines forbid embedding. Wikipedia works directly; others need a proxy.</div>
+   web:()=>`<div class="grp"><h3>Browser</h3><label>Search engine (use %s for the query)</label><input class="ui" data-k="search" value="${esc(S.search)}"><div class="muted">Many search engines forbid embedding. Wikipedia works directly; others need a proxy or the Launch button.</div>
      <label>Home page</label><input class="ui" data-k="home" value="${esc(S.home)}"><div class="muted">Use aura://start for the built-in start page.</div><label>Default load mode</label>${sel("embedDefault",[["direct","Direct"],["proxy","Through proxy"]])}</div>
      <div class="grp"><h3>Proxy</h3><div class="muted">URL template of a proxy you control that strips frame-blocking headers. Use {url} where the encoded address goes, e.g. <code>https://your-worker.workers.dev/?u={url}</code>. Only use proxies you trust, since they see the pages you load.</div><label>Proxy template</label><input class="ui" data-k="proxy" placeholder="https://your-worker.workers.dev/?u={url}" value="${esc(S.proxy)}"></div>`,
    apps:()=>`<div class="grp"><h3>Installed web apps</h3>${apps.length?apps.map(a=>`<div class="li"><img src="${esc(a.icon||fallbackIcon)}" alt=""><div class="grow"><div style="font-size:12px;font-weight:600">${esc(a.name)}</div><div class="muted">${esc(a.url)}</div></div><select class="ui" data-m="${a.id}" style="width:auto"><option value="direct" ${a.mode!=="proxy"?"selected":""}>Direct</option><option value="proxy" ${a.mode==="proxy"?"selected":""}>Proxy</option></select><button class="sec" data-e="${a.id}">Edit</button><button class="danger" data-x="${a.id}">Remove</button></div>`).join(""):'<div class="muted">No web apps installed.</div>'}<div style="margin-top:10px"><button class="btn" id="gs">Open App Store</button></div></div>`,
    sys:()=>{let used=0;try{Object.keys(localStorage).filter(k=>k.startsWith(P)).forEach(k=>used+=localStorage[k].length)}catch{}
-     return`<div class="grp"><h3>System</h3><label>Exit URL (power button → Exit)</label><input class="ui" data-k="exitUrl" value="${esc(S.exitUrl)}"><label>Storage used by AuraOS</label><div class="muted">${(used/1024).toFixed(1)} KB of roughly 5,000 KB</div><div style="margin-top:8px"><button class="sec" onclick="toggleFS()">Toggle fullscreen</button></div></div>
-     <div class="grp"><h3>Backup & restore</h3><div class="muted">Settings, apps, files and tasks in one JSON file.</div><div class="row" style="margin-top:8px"><button class="sec" id="bx">Export</button><label class="sec" style="cursor:pointer">Import<input type="file" id="bi" accept=".json,application/json" hidden></label></div></div>
+     return`<div class="grp"><h3>System</h3><label>Exit URL (power button)</label><input class="ui" data-k="exitUrl" value="${esc(S.exitUrl)}"><label>Storage used by AuraOS</label><div class="muted">${(used/1024).toFixed(1)} KB of roughly 5,000 KB</div><div style="margin-top:8px"><button class="sec" onclick="toggleFS()">Toggle fullscreen</button></div></div>
+     <div class="grp"><h3>Backup & restore</h3><div class="muted">Settings, apps and files in one JSON file.</div><div class="row" style="margin-top:8px"><button class="sec" id="bx">Export</button><label class="sec" style="cursor:pointer">Import<input type="file" id="bi" accept=".json,application/json" hidden></label></div></div>
      <div class="grp"><h3 style="color:#f87171">Reset</h3><div class="muted">Deletes all AuraOS data in this browser.</div><button class="danger" id="rs" style="margin-top:8px">Factory reset</button></div>
-     <div class="muted" style="padding-top:10px">AuraOS v6 · data is stored locally in this browser.</div>`}
+     <div class="muted" style="padding-top:10px">AuraOS v7 · data is stored locally in this browser.</div>`}
   };
   function render(){
     $$("nav button",b).forEach(x=>x.classList.toggle("on",x.dataset.t===cur));
     main.innerHTML=pages[cur]();
-    $$("[data-k]",main).forEach(i=>{const h=()=>{const k=i.dataset.k;S[k]=i.type==="checkbox"?i.checked:(i.type==="range"?+i.value:i.value);saveS();applySettings();if(["iconSize","showLabels","openMode","search"].includes(k))renderDesktop();if(k==="theme")render()};i.oninput=h;i.onchange=h});
+    $$("[data-k]",main).forEach(i=>{const h=()=>{const k=i.dataset.k;S[k]=i.type==="checkbox"?i.checked:(i.type==="range"?+i.value:i.value);saveS();applySettings();if(["iconSize","showLabels","openMode"].includes(k))renderDesktop();if(k==="theme")render()};i.oninput=h;i.onchange=h});
     $$("[data-c]",main).forEach(x=>x.onclick=()=>{S.accent=x.dataset.c;saveS();applySettings();render()});
     $$("[data-w]",main).forEach(x=>x.onclick=()=>{S.wallpaper=WALLS[+x.dataset.w];saveS();applySettings()});
     const wa=$("#wa",main);if(wa)wa.onclick=()=>{const u=validURL($("#wu",main).value);if(!u)return toast("Enter a valid image URL");S.wallpaper=u;saveS();applySettings()};
     const wf=$("#wf",main);if(wf)wf.onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image(),u=URL.createObjectURL(f);
       img.onload=()=>{const sc=Math.min(1,1920/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=img.width*sc;c.height=img.height*sc;c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-        S.wallpaper=c.toDataURL("image/jpeg",.8);URL.revokeObjectURL(u);if(saveS()!==false)applySettings()};img.onerror=()=>toast("Could not read image");img.src=u};
-    $$("[data-m]",main).forEach(x=>x.onchange=()=>{apps.find(a=>a.id===x.dataset.m).mode=x.value;saveApps()});
+        S.wallpaper=c.toDataURL("image/jpeg",.8);URL.revokeObjectURL(u);saveS();applySettings()};img.onerror=()=>toast("Could not read image");img.src=u};
+    $$("[data-m]",main).forEach(x=>x.onchange=()=>{apps.find(a=>a.id===x.dataset.m).mode=x.value;saveApps();closeWin(x.dataset.m)});
     $$("[data-x]",main).forEach(x=>x.onclick=()=>{if(!confirm("Remove this app?"))return;closeWin(x.dataset.x);apps=apps.filter(a=>a.id!==x.dataset.x);saveApps();renderDesktop();render()});
     $$("[data-e]",main).forEach(x=>x.onclick=()=>{const a=apps.find(y=>y.id===x.dataset.e),n=prompt("App name",a.name);if(!n)return;const u=validURL(prompt("App URL",a.url)||"");if(!u)return toast("Invalid URL");a.name=n.slice(0,40);a.url=u;a.icon=favicon(u);saveApps();closeWin(a.id);renderDesktop();render()});
     const gs=$("#gs",main);if(gs)gs.onclick=()=>openApp("store");
-    const bx=$("#bx",main);if(bx)bx.onclick=()=>download("AuraOS-backup.json",new Blob([JSON.stringify({v:6,S,apps,files,tasks})],{type:"application/json"}));
+    const bx=$("#bx",main);if(bx)bx.onclick=()=>download("AuraOS-backup.json",new Blob([JSON.stringify({v:7,S,apps,files})],{type:"application/json"}));
     const bi=$("#bi",main);if(bi)bi.onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||!d.S||!Array.isArray(d.apps))throw 0;if(!confirm("Replace current AuraOS data with this backup?"))return;
-      ss("settings",{...DEF,...d.S});ss("apps",d.apps.filter(a=>a&&a.custom&&validURL(a.url)));ss("files",Array.isArray(d.files)?d.files:[]);ss("tasks",Array.isArray(d.tasks)?d.tasks:[]);location.reload()}catch{toast("Invalid backup file")}};
+      ss("settings",{...DEF,...d.S});ss("apps",d.apps.filter(a=>a&&a.custom&&validURL(a.url)));ss("files",Array.isArray(d.files)?d.files:[]);location.reload()}catch{toast("Invalid backup file")}};
     const rs=$("#rs",main);if(rs)rs.onclick=()=>{if(!confirm("Factory reset? This deletes all AuraOS data in this browser."))return;try{Object.keys(localStorage).filter(k=>k.startsWith(P)).forEach(k=>localStorage.removeItem(k))}catch{}location.reload()};
   }
   b.addEventListener("click",e=>{const t=e.target.closest("nav [data-t]");if(t){cur=t.dataset.t;render()}});
