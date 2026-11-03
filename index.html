@@ -2,1206 +2,593 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f172a">
-<title>AuraOS | Web Operating System</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>AuraOS</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-:root {
-  --accent: #6366f1;
-  --window-opacity: 0.94;
-  --window-blur: 24px;
-  --text: #f3f4f6;
-}
-
-* { box-sizing: border-box; }
-
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  font-family: 'Inter', sans-serif;
-  color: var(--text);
-  user-select: none;
-  overscroll-behavior: none;
-  background-color: #0b0f19;
-}
-
-button, input, textarea, select { font: inherit; }
-button { cursor: pointer; }
-input, textarea { user-select: text; }
-
-#osBody {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: background-image 0.4s ease;
-}
-
-.glass {
-  background: rgba(15, 23, 42, var(--window-opacity));
-  backdrop-filter: blur(var(--window-blur));
-  -webkit-backdrop-filter: blur(var(--window-blur));
-}
-
-.window {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  min-width: 280px;
-  min-height: 190px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  pointer-events: auto;
-}
-
-.window.active {
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.window-header {
-  height: 44px;
-  min-height: 44px;
-  background: rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: grab;
-  touch-action: none;
-}
-
-.window-header:active { cursor: grabbing; }
-
-.window-body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-}
-
-.resize-handle {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 22px;
-  height: 22px;
-  cursor: nwse-resize;
-  touch-action: none;
-}
-
-#windowContainer {
-  position: absolute;
-  inset: 44px 0 60px;
-  pointer-events: none;
-  z-index: 30;
-}
-
-#desktopArea {
-  position: absolute;
-  inset: 44px 0 60px;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 92px);
-  grid-auto-rows: 104px;
-  align-content: start;
-  gap: 12px;
-  overflow: auto;
-}
-
-.desktop-icon {
-  width: 92px;
-  height: 100px;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  text-align: center;
-  padding: 8px;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.desktop-icon:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.desktop-icon.selected {
-  background: rgba(99, 102, 241, 0.25);
-  border: 1px solid rgba(99, 102, 241, 0.4);
-}
-
-.desktop-icon img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  border-radius: 11px;
-}
-
-.desktop-icon .builtin-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.desktop-icon span {
-  font-size: 11px;
-  line-height: 1.25;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-}
-
-#topbar {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 44px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(11, 15, 25, 0.75);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  font-size: 12px;
-}
-
-#dock {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  background: rgba(11, 15, 25, 0.8);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-#taskbarApps {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 95%;
-  overflow-x: auto;
-  padding: 0 10px;
-}
-
-.task-button {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  position: relative;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.task-button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
-.task-button.open { background: rgba(255, 255, 255, 0.22); }
-
-.task-button.open::after {
-  content: "";
-  position: absolute;
-  bottom: 3px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.task-button img { width: 22px; height: 22px; object-fit: contain; }
-
-#startMenu {
-  position: absolute;
-  z-index: 120;
-  bottom: 70px;
-  left: 12px;
-  width: min(400px, calc(100vw - 24px));
-  max-height: min(580px, calc(100vh - 110px));
-  overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
-  padding: 18px;
-  background: rgba(13, 18, 32, 0.96);
-  backdrop-filter: blur(30px);
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.start-app {
-  padding: 12px 6px;
-  border-radius: 12px;
-  text-align: center;
-  cursor: pointer;
-  min-width: 0;
-  transition: background 0.15s;
-}
-
-.start-app:hover { background: rgba(255, 255, 255, 0.12); }
-.start-app img { width: 34px; height: 34px; object-fit: contain; margin: auto auto 6px; border-radius: 8px; }
-.start-app span { display: block; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.ui-input {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: white;
-  outline: none;
-  font-size: 13px;
-}
-
-.ui-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25); }
-
-.ui-button {
-  background: var(--accent);
-  color: white;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  transition: filter 0.15s;
-}
-
-.ui-button:hover { filter: brightness(1.15); }
-
-.secondary-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 9px;
-  padding: 9px 13px;
-  font-size: 12px;
-  transition: background 0.15s;
-}
-
-.secondary-button:hover { background: rgba(255, 255, 255, 0.18); }
-
-.danger-button {
-  background: rgba(220, 38, 38, 0.2);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 9px;
-  padding: 9px 13px;
-  font-size: 12px;
-}
-
-.app-list-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.app-list-item img { width: 30px; height: 30px; object-fit: contain; border-radius: 8px; }
-.app-list-item .details { flex: 1; min-width: 0; }
-.app-list-item .details div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-#toast {
-  position: absolute;
-  z-index: 200;
-  bottom: 76px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 18px;
-  background: rgba(13, 18, 32, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 12px;
-  display: none;
-  max-width: 90%;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-@media(max-width: 640px) {
-  #desktopArea { padding: 12px; grid-template-columns: repeat(auto-fill, 80px); grid-auto-rows: 92px; gap: 8px; }
-  .desktop-icon { width: 80px; height: 90px; }
-  .desktop-icon img, .desktop-icon .builtin-icon { width: 38px; height: 38px; }
-  #startMenu { left: 8px; bottom: 66px; }
-}
+:root{--accent:#6366f1;--op:.92;--blur:18px;--rad:13px;--fs:14px;--cell:80px;--is:38px;
+--fg:#f8fafc;--muted:#94a3b8;--p:15,23,42;--l:255,255,255}
+:root[data-theme=light]{--fg:#0f172a;--muted:#475569;--p:248,250,252;--l:0,0,0}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fg);background:#0b1020;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+input,textarea{user-select:text;-webkit-user-select:text}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#desktop{position:absolute;inset:44px 0 62px;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,var(--cell));grid-auto-rows:calc(var(--cell) + 10px);gap:8px;align-content:start;overflow:auto;background-size:cover;background-position:center}
+#topbar,#dock{position:absolute;left:0;right:0;z-index:1000;background:rgba(var(--p),.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:0 solid rgba(var(--l),.12)}
+#topbar{top:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom-width:1px;font-size:12px;padding-top:env(safe-area-inset-top)}
+#dock{bottom:0;height:62px;display:flex;align-items:center;gap:8px;border-top-width:1px;padding:0 10px env(safe-area-inset-bottom)}
+#taskbar{display:flex;gap:6px;align-items:center;overflow-x:auto;flex:1;justify-content:center;scrollbar-width:none}
+.tb{background:none;border:0;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px}
+.tb:hover{background:rgba(var(--l),.1)}
+.desktop-icon{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;padding:4px;border-radius:12px;background:transparent;border:1px solid transparent;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.7);color:#fff}
+.desktop-icon:hover,.desktop-icon.sel{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2)}
+.desktop-icon i{font-size:var(--is)}
+.desktop-icon img,.ico{width:var(--is);height:var(--is);object-fit:contain;border-radius:9px}
+.desktop-icon span{font-size:11px;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-button{width:42px;height:42px;flex:0 0 auto;border:0;border-radius:10px;background:rgba(var(--l),.1);position:relative}
+.task-button.active{background:rgba(var(--l),.25)}
+.task-button.active::after{content:"";position:absolute;bottom:3px;left:50%;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--accent)}
+.task-button img{width:22px;height:22px;object-fit:contain}
+#windowLayer{position:absolute;inset:44px 0 62px;pointer-events:none;z-index:10;overflow:hidden}
+.window{position:absolute;display:flex;flex-direction:column;min-width:260px;min-height:190px;max-width:100%;max-height:100%;pointer-events:auto;overflow:hidden;border:1px solid rgba(var(--l),.2);border-radius:var(--rad);background:rgba(var(--p),var(--op));backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 20px 55px rgba(0,0,0,.4);font-size:var(--fs)}
+.anim .window{animation:pop .16s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.96)}}
+.window.active{border-color:rgba(var(--l),.45)}
+.window.maxed,body.mob .window{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+.win-header{height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 12px;background:rgba(var(--l),.06);border-bottom:1px solid rgba(var(--l),.1);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.win-title{font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.win-controls{display:flex;gap:3px}
+.win-controls button{width:32px;height:32px;border:0;border-radius:8px;background:transparent}
+.win-controls button:hover{background:rgba(var(--l),.14)}
+.win-controls .close:hover{background:#dc2626;color:#fff}
+body.mob .win-controls .max,body.mob .resize{display:none}
+.win-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;position:relative}
+.resize{position:absolute;bottom:0;right:0;width:22px;height:22px;cursor:nwse-resize;touch-action:none}
+.ui{width:100%;min-width:0;padding:9px 11px;background:rgba(var(--l),.08);border:1px solid rgba(var(--l),.18);border-radius:9px}
+select.ui option{color:#000}
+.btn{border:0;border-radius:9px;padding:9px 13px;background:var(--accent);color:#fff;font-size:12px;font-weight:600}
+.sec{border:1px solid rgba(var(--l),.16);border-radius:9px;background:rgba(var(--l),.08);padding:8px 12px;font-size:12px}
+.sec:hover{background:rgba(var(--l),.16)}
+.danger{background:rgba(220,38,38,.18);border:1px solid rgba(239,68,68,.35);border-radius:9px;color:#f87171;padding:8px 12px;font-size:12px}
+.row{display:flex;gap:6px;align-items:center}
+.pad{padding:14px}
+.muted{color:var(--muted);font-size:11px}
+#startMenu{position:absolute;z-index:1100;bottom:70px;left:10px;width:min(400px,calc(100vw - 20px));max-height:calc(100% - 130px);overflow:auto;padding:14px;border-radius:16px;border:1px solid rgba(var(--l),.18);background:rgba(var(--p),.97);backdrop-filter:blur(25px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#startMenu[hidden],#ctx[hidden]{display:none}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+.start-app{padding:10px 2px;border:0;border-radius:10px;background:transparent;min-width:0;text-align:center}
+.start-app:hover{background:rgba(var(--l),.12)}
+.start-app i{font-size:25px;display:block;margin-bottom:6px}
+.start-app img{width:28px;height:28px;object-fit:contain;display:block;margin:0 auto 6px}
+.start-app span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast{position:absolute;z-index:3000;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 15px;border-radius:10px;background:#111827;color:#f8fafc;border:1px solid rgba(255,255,255,.2);font-size:12px;display:none;max-width:90%}
+.bar{display:flex;gap:5px;padding:7px;background:rgba(0,0,0,.18);border-bottom:1px solid rgba(var(--l),.1)}
+.wv{flex:1;min-height:0;position:relative;background:#fff}
+.wv iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.start{position:absolute;inset:0;overflow:auto;padding:24px 14px;background:rgba(var(--p),1);text-align:center}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,90px);gap:10px;justify-content:center;margin-top:20px}
+.tile{padding:10px 4px;border:0;border-radius:12px;background:rgba(var(--l),.07);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile img{width:30px;height:30px;display:block;margin:0 auto 6px}
+.hint{font-size:10px;padding:4px 8px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint button{background:none;border:0;color:var(--accent);padding:0;font-size:10px;text-decoration:underline}
+.set{display:flex;flex:1;min-height:0}
+.set nav{width:150px;flex:none;border-right:1px solid rgba(var(--l),.1);padding:8px;overflow:auto}
+.set nav button{display:flex;gap:8px;align-items:center;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;text-align:left;font-size:12px}
+.set nav button.on,.set nav button:hover{background:rgba(var(--l),.12)}
+.set main{flex:1;min-width:0;overflow:auto;padding:14px}
+.set h3{margin:0 0 4px;font-size:14px}
+.grp{padding:12px 0;border-bottom:1px solid rgba(var(--l),.1)}
+.grp label{display:block;font-size:11px;margin:8px 0 4px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid rgba(var(--l),.7);padding:0}
+.wp{width:56px;height:38px;border-radius:8px;border:2px solid rgba(var(--l),.4);background-size:cover;padding:0}
+.li{display:flex;align-items:center;gap:9px;padding:8px;margin:6px 0;border:1px solid rgba(var(--l),.12);border-radius:9px}
+.li .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li img{width:26px;height:26px;object-fit:contain}
+.term{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.35);color:#e2e8f0;flex:1;overflow:auto;padding:10px;white-space:pre-wrap;word-break:break-word}
+.term input{background:none;border:0;outline:0;width:70%;font:inherit;color:inherit}
+@media(max-width:650px){.set{flex-direction:column}.set nav{width:100%;display:flex;border-right:0;border-bottom:1px solid rgba(var(--l),.1);overflow-x:auto}.set nav button{width:auto;white-space:nowrap}.grid4{grid-template-columns:repeat(3,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
+<body class="anim">
 
-<body id="osBody">
-
-<!-- TOP BAR -->
 <header id="topbar">
-  <div class="flex items-center gap-3">
-    <button onclick="toggleStartMenu()" class="flex items-center gap-2 font-bold px-2 py-1 rounded-lg hover:bg-white/10 transition">
-      <i class="fa-solid fa-shapes text-base" style="color:var(--accent)"></i>
-      <span class="tracking-wide">AuraOS</span>
-    </button>
-    <span class="text-gray-500">|</span>
-    <span id="activeAppTitle" class="text-gray-300 font-medium">Desktop</span>
+  <div class="row" style="gap:10px;min-width:0">
+    <button class="tb" onclick="toggleStart()" style="font-weight:700"><i class="fa-solid fa-layer-group" style="color:var(--accent)"></i>AuraOS</button>
+    <span style="opacity:.4">|</span><span id="activeTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Desktop</span>
   </div>
-
-  <div class="flex items-center gap-4">
-    <span id="storageStatus" class="hidden sm:inline text-xs text-gray-400">Cloud & Local Sync Active</span>
-    <span id="sysClock" class="font-mono font-medium">00:00</span>
-    <button onclick="powerOff()" title="Exit AuraOS / Return to Site" class="text-red-400 hover:text-red-300 transition p-1">
-      <i class="fa-solid fa-power-off text-sm"></i>
-    </button>
+  <div class="row" style="gap:6px">
+    <span id="clock"></span>
+    <button class="tb" id="fsBtn" onclick="toggleFS()" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
+    <button class="tb" onclick="powerMenu()" title="Power" style="color:#f87171"><i class="fa-solid fa-power-off"></i></button>
   </div>
 </header>
 
-<!-- DESKTOP AREA -->
-<main id="desktopArea"></main>
+<main id="desktop"></main>
+<div id="windowLayer"></div>
 
-<!-- WINDOW CONTAINER -->
-<div id="windowContainer"></div>
-
-<!-- START MENU -->
 <div id="startMenu" hidden>
-  <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-    <div class="flex items-center gap-3">
-      <div class="w-11 h-11 rounded-xl grid place-items-center font-bold text-lg text-white shadow-lg" style="background:var(--accent)">A</div>
-      <div>
-        <div class="text-sm font-bold">AuraOS Web</div>
-        <div class="text-[11px] text-gray-400">GitHub Pages Edition</div>
-      </div>
-    </div>
-    <button onclick="powerOff()" class="danger-button py-1.5 px-3">
-      <i class="fa-solid fa-power-off mr-1"></i> Exit OS
-    </button>
-  </div>
-
-  <div class="text-[11px] uppercase tracking-wider text-gray-400 mb-2 font-semibold">Installed Applications</div>
-  <div id="startMenuApps" class="app-grid"></div>
-
-  <div class="border-t border-white/10 mt-4 pt-3 flex justify-between items-center text-xs text-gray-400">
-    <span>AuraOS v4.2 • GitHub Ready</span>
-    <button onclick="openApp('settings');closeStartMenu()" class="hover:text-white flex items-center gap-1 transition">
-      <i class="fa-solid fa-gear"></i> Settings
-    </button>
+  <input class="ui" id="startSearch" placeholder="Search apps…" autocomplete="off">
+  <div id="startApps" class="grid4"></div>
+  <div class="row" style="justify-content:space-between;border-top:1px solid rgba(var(--l),.12);padding-top:10px">
+    <button class="sec" onclick="openApp('settings');closeStart()"><i class="fa-solid fa-gear"></i> Settings</button>
+    <span><button class="sec" onclick="location.reload()">Restart</button> <button class="danger" onclick="exitOS()">Exit</button></span>
   </div>
 </div>
 
-<!-- DOCK / TASKBAR -->
 <footer id="dock">
-  <div id="taskbarApps"></div>
+  <button class="task-button" onclick="toggleStart()" title="Start"><i class="fa-solid fa-layer-group" style="color:var(--accent);font-size:18px"></i></button>
+  <div id="taskbar"></div>
 </footer>
-
 <div id="toast"></div>
-
-<!-- WINDOW TEMPLATE -->
-<template id="windowTemplate">
-  <section class="window glass">
-    <header class="window-header flex items-center justify-between px-3.5">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <img class="app-icon-sm w-4 h-4 object-contain" alt="">
-        <span class="window-title text-xs font-semibold truncate">App</span>
-      </div>
-      <div class="flex items-center gap-1">
-        <button class="minimize-btn w-7 h-7 rounded-lg hover:bg-white/10 grid place-items-center text-gray-300 transition" title="Minimize">
-          <i class="fa-solid fa-minus text-xs"></i>
-        </button>
-        <button class="maximize-btn w-7 h-7 rounded-lg hover:bg-white/10 grid place-items-center text-gray-300 transition" title="Maximize">
-          <i class="fa-regular fa-square text-[10px]"></i>
-        </button>
-        <button class="close-btn w-7 h-7 rounded-lg hover:bg-red-500/20 hover:text-red-300 grid place-items-center text-gray-300 transition" title="Close">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-    </header>
-    <div class="window-body"></div>
-    <div class="resize-handle"></div>
-  </section>
-</template>
 
 <script>
 "use strict";
+const P="auraos_v6_", $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const mem={};
+function ls(k,f){try{const v=localStorage.getItem(P+k);return v===null?(k in mem?mem[k]:f):JSON.parse(v)}catch{return k in mem?mem[k]:f}}
+function ss(k,v){mem[k]=v;try{localStorage.setItem(P+k,JSON.stringify(v));return true}catch{toast("Storage full or blocked by browser");return false}}
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display="none",2600)}
+function validURL(v){try{const u=new URL(v);return/^https?:$/.test(u.protocol)?u.href:null}catch{return null}}
+const fallbackIcon="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#6366f1"/><text x="32" y="43" font-size="32" text-anchor="middle" fill="#fff" font-family="sans-serif">A</text></svg>');
+const favicon=u=>{try{return"https://www.google.com/s2/favicons?domain="+encodeURIComponent(new URL(u).hostname)+"&sz=128"}catch{return fallbackIcon}};
+const DEF_WP="linear-gradient(135deg,#1e1b4b,#312e81 45%,#0f172a)";
+const WALLS=[DEF_WP,"linear-gradient(135deg,#0f172a,#0e7490)","linear-gradient(135deg,#4c1d95,#be185d)","linear-gradient(135deg,#052e16,#166534)","linear-gradient(135deg,#7c2d12,#f59e0b)","linear-gradient(135deg,#111,#374151)","https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop"];
 
-// Obfuscated Home URL payload decoding to prevent static URL scraping
-const _0xUrl = "aHR0cHM6Ly9zaXRlcy5nb29nbGUuY29tL3ZpZXcvNzB1MGoyZ2xzZDE5LzA3WjE5VTUzUVNZUy8=";
-const HOME_URL = atob(_0xUrl);
-const STORAGE_PREFIX = "auraos_v4_";
+/* ---------- STATE ---------- */
+const DEF={theme:"dark",accent:"#6366f1",wallpaper:DEF_WP,opacity:.92,blur:18,rad:13,fs:14,anim:true,
+ iconSize:38,showLabels:true,openMode:"auto",clock24:false,seconds:false,
+ search:"https://en.wikipedia.org/w/index.php?search=%s",home:"aura://start",embedDefault:"direct",proxy:"",
+ exitUrl:"https://sites.google.com/view/70u0j2glsd19/07Z19U53QSYS"};
+let S={...DEF,...ls("settings",{})};
+let apps=ls("apps",null);
+if(!Array.isArray(apps)){ // migrate from v5
+  try{apps=JSON.parse(localStorage.getItem("auraos_v5_apps")||"[]")}catch{apps=[]}
+  if(!Array.isArray(apps))apps=[];
+}
+let files=ls("files",null);
+if(!Array.isArray(files)){files=[];
+  try{const n=JSON.parse(localStorage.getItem("auraos_v5_notes")||'""');if(n)files.push({id:uid(),name:"Notes.txt",mime:"text/plain",text:true,data:n,mtime:Date.now()})}catch{}}
+let tasks=ls("tasks",[]);
+const saveS=()=>ss("settings",S), saveApps=()=>ss("apps",apps), saveFiles=()=>{const ok=ss("files",files);dispatchEvent(new Event("fs"));return ok}, saveTasks=()=>ss("tasks",tasks);
+const W={};let Z=100;
 
-const DEFAULT_WALLPAPER =
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop";
+function applySettings(){
+  const r=document.documentElement.style;
+  document.documentElement.dataset.theme=S.theme;
+  r.setProperty("--accent",S.accent);r.setProperty("--op",S.opacity);r.setProperty("--blur",S.blur+"px");
+  r.setProperty("--rad",S.rad+"px");r.setProperty("--fs",S.fs+"px");r.setProperty("--is",S.iconSize+"px");r.setProperty("--cell",(+S.iconSize+42)+"px");
+  const w=S.wallpaper||DEF_WP;
+  $("#desktop").style.backgroundImage=/^(linear|radial)-gradient/.test(w)?w:`url("${w}")`;
+  document.body.classList.toggle("anim",!!S.anim);
+  $('meta[name=theme-color]').content=S.theme==="light"?"#f8fafc":"#0b1020";
+  updateClock();
+}
 
-const DEFAULT_APPS = [
-  { id: "browser", name: "Browser", icon: "fa-solid fa-globe", color: "#fb923c", builtin: true },
-  { id: "notepad", name: "Notepad", icon: "fa-solid fa-note-sticky", color: "#fbbf24", builtin: true },
-  { id: "calculator", name: "Calculator", icon: "fa-solid fa-calculator", color: "#34d399", builtin: true },
-  { id: "addwebsite", name: "Add Website", icon: "fa-solid fa-circle-plus", color: "#818cf8", builtin: true },
-  { id: "settings", name: "Settings", icon: "fa-solid fa-gear", color: "#d1d5db", builtin: true }
+/* ---------- APP REGISTRY ---------- */
+const BUILTIN=[
+ {id:"browser",name:"Browser",fa:"fa-solid fa-globe",color:"#fb923c",init:(b,w,a)=>webview(b,w,{url:a.url||S.home,mode:S.embedDefault})},
+ {id:"files",name:"Files",fa:"fa-solid fa-folder-open",color:"#60a5fa",init:initFiles},
+ {id:"editor",name:"Editor",fa:"fa-solid fa-file-pen",color:"#fbbf24",init:initEditor},
+ {id:"calculator",name:"Calculator",fa:"fa-solid fa-calculator",color:"#34d399",init:initCalc},
+ {id:"tasks",name:"Tasks",fa:"fa-solid fa-list-check",color:"#f472b6",init:initTasks},
+ {id:"clock",name:"Clock",fa:"fa-regular fa-clock",color:"#a78bfa",init:initClock},
+ {id:"paint",name:"Paint",fa:"fa-solid fa-paintbrush",color:"#f87171",init:initPaint},
+ {id:"media",name:"Media",fa:"fa-solid fa-circle-play",color:"#22d3ee",init:initMedia},
+ {id:"terminal",name:"Terminal",fa:"fa-solid fa-terminal",color:"#4ade80",init:initTerm},
+ {id:"store",name:"App Store",fa:"fa-solid fa-bag-shopping",color:"#818cf8",init:initStore},
+ {id:"settings",name:"Settings",fa:"fa-solid fa-gear",color:"#cbd5e1",init:initSettings}
 ];
+const CATALOG=[
+ {name:"Wikipedia",url:"https://en.m.wikipedia.org/"},
+ {name:"OpenStreetMap",url:"https://www.openstreetmap.org/export/embed.html"},
+ {name:"Excalidraw",url:"https://excalidraw.com/"},
+ {name:"Photopea",url:"https://www.photopea.com/"},
+ {name:"Desmos",url:"https://www.desmos.com/calculator"},
+ {name:"Piskel",url:"https://www.piskelapp.com/"}
+];
+const allApps=()=>[...BUILTIN,...apps];
+const getApp=id=>allApps().find(a=>a.id===id);
+function iconHTML(a,size){const st=size?`style="${a.custom?`width:${size}px;height:${size}px`:`font-size:${size}px`}"`:"";
+  return a.custom?`<img class="ico" ${st} src="${esc(a.icon||fallbackIcon)}" alt="" onerror="this.onerror=null;this.src='${fallbackIcon}'">`
+  :`<i class="${esc(a.fa)}" ${st} style="color:${a.color};${size?`font-size:${size}px`:""}"></i>`}
 
-let userApps = [];
-let activeWindows = {};
-let zIndexCounter = 100;
-let settings = {};
-let noteText = "";
-
-const $ = id => document.getElementById(id);
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
+/* ---------- DESKTOP / START / TASKBAR ---------- */
+const coarse=matchMedia("(pointer:coarse)").matches;
+function renderDesktop(){
+  const d=$("#desktop");d.innerHTML="";
+  allApps().forEach(a=>{
+    const b=document.createElement("button");b.className="desktop-icon";
+    b.innerHTML=iconHTML(a)+(S.showLabels?`<span>${esc(a.name)}</span>`:"");b.title=a.name;
+    const single=S.openMode==="single"||(S.openMode==="auto"&&coarse);
+    b.onclick=()=>{if(single)openApp(a.id);else{$$(".desktop-icon").forEach(x=>x.classList.remove("sel"));b.classList.add("sel")}};
+    b.ondblclick=()=>{if(!single)openApp(a.id)};
+    d.appendChild(b);
+  });
+  renderStart();renderTaskbar();
 }
+function renderStart(){
+  const q=$("#startSearch").value.toLowerCase(),box=$("#startApps");box.innerHTML="";
+  allApps().filter(a=>a.name.toLowerCase().includes(q)).forEach(a=>{
+    const b=document.createElement("button");b.className="start-app";b.innerHTML=iconHTML(a,25)+`<span>${esc(a.name)}</span>`;
+    b.onclick=()=>openApp(a.id);box.appendChild(b);
+  });
+}
+$("#startSearch").oninput=renderStart;
+$("#startSearch").onkeydown=e=>{if(e.key==="Enter"){const f=allApps().find(a=>a.name.toLowerCase().includes(e.target.value.toLowerCase()));if(f)openApp(f.id)}};
+function toggleStart(){const m=$("#startMenu");m.hidden=!m.hidden;if(!m.hidden){$("#startSearch").value="";renderStart();if(!coarse)$("#startSearch").focus()}}
+function closeStart(){$("#startMenu").hidden=true}
+document.addEventListener("pointerdown",e=>{if(!e.target.closest("#startMenu,#dock,#topbar"))closeStart()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeStart()});
+function exitOS(){if(S.exitUrl&&validURL(S.exitUrl))location.href=S.exitUrl;else location.reload()}
+function powerMenu(){toggleStart()}
+function toggleFS(){const d=document,r=d.documentElement;
+  if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
+  else(r.requestFullscreen||r.webkitRequestFullscreen||(()=>toast("Fullscreen not supported on this device"))).call(r)}
+if(!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))$("#fsBtn").style.display="none";
+function updateClock(){const o={hour:"2-digit",minute:"2-digit",hour12:!S.clock24};if(S.seconds)o.second="2-digit";
+  $("#clock").textContent=new Date().toLocaleTimeString([],o)}
+setInterval(updateClock,1000);
 
-function validWebURL(value) {
-  try {
-    const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
-  } catch {
-    return null;
+/* ---------- WINDOW MANAGER ---------- */
+function openApp(id,args={},key=id){
+  closeStart();
+  const app=getApp(id);if(!app)return;
+  if(W[key]){const w=W[key];w.style.display="flex";focusWin(key);if(w.onArgs)w.onArgs(args);return}
+  const lw=$("#windowLayer").clientWidth,lh=$("#windowLayer").clientHeight;
+  const w0=Math.min(860,lw-30),h0=Math.min(600,lh-30),n=Object.keys(W).length%6*22;
+  const win=document.createElement("section");win.className="window";
+  Object.assign(win.style,{width:w0+"px",height:h0+"px",left:Math.max(0,(lw-w0)/2+n-50)+"px",top:Math.max(0,(lh-h0)/2+n-30)+"px"});
+  win.innerHTML=`<header class="win-header"><div class="row" style="min-width:0">${iconHTML(app,18)}<span class="win-title">${esc(app.name)}</span></div>
+   <div class="win-controls"><button class="min" title="Minimize"><i class="fa-solid fa-minus"></i></button><button class="max" title="Maximize"><i class="fa-regular fa-square"></i></button><button class="close" title="Close"><i class="fa-solid fa-xmark"></i></button></div></header>
+   <div class="win-body"></div><div class="resize"></div>`;
+  win.cleanup=[];win.key=key;win.appId=id;
+  win.setTitle=t=>{$(".win-title",win).textContent=t;if(win.classList.contains("active"))$("#activeTitle").textContent=t};
+  $(".close",win).onclick=()=>closeWin(key);
+  $(".min",win).onclick=()=>minWin(key);
+  const mx=()=>win.classList.toggle("maxed");
+  $(".max",win).onclick=mx;$(".win-header",win).ondblclick=e=>{if(!e.target.closest("button")&&innerWidth>=650)mx()};
+  win.addEventListener("pointerdown",()=>focusWin(key),true);
+  drag(win);resize(win);
+  $("#windowLayer").appendChild(win);W[key]=win;
+  try{app.init($(".win-body",win),win,args,app)}catch(e){console.error(e);$(".win-body",win).textContent="This app crashed: "+e.message}
+  focusWin(key);
+}
+function focusWin(k){const w=W[k];if(!w)return;Z++;Object.values(W).forEach(x=>x.classList.remove("active"));w.classList.add("active");w.style.zIndex=Z;
+  $("#activeTitle").textContent=$(".win-title",w).textContent;renderTaskbar()}
+function closeWin(k){const w=W[k];if(!w)return;w.cleanup.forEach(f=>{try{f()}catch{}});w.remove();delete W[k];$("#activeTitle").textContent="Desktop";renderTaskbar()}
+function minWin(k){const w=W[k];if(!w)return;w.style.display="none";w.classList.remove("active");$("#activeTitle").textContent="Desktop";renderTaskbar()}
+function renderTaskbar(){
+  const t=$("#taskbar");t.innerHTML="";
+  Object.entries(W).forEach(([k,w])=>{const a=getApp(w.appId);if(!a)return;
+    const b=document.createElement("button");b.className="task-button"+(w.classList.contains("active")?" active":"");
+    b.title=$(".win-title",w).textContent;b.innerHTML=iconHTML(a,20);
+    b.onclick=()=>{if(w.style.display==="none"){w.style.display="flex";focusWin(k)}else if(w.classList.contains("active"))minWin(k);else focusWin(k)};
+    t.appendChild(b)});
+}
+function drag(win){
+  const h=$(".win-header",win);let sx,sy,sl,st,on=false;
+  h.addEventListener("pointerdown",e=>{if(e.target.closest("button")||innerWidth<650||win.classList.contains("maxed"))return;
+    on=true;sx=e.clientX;sy=e.clientY;sl=win.offsetLeft;st=win.offsetTop;h.setPointerCapture(e.pointerId);e.preventDefault()});
+  h.addEventListener("pointermove",e=>{if(!on)return;const L=$("#windowLayer");
+    win.style.left=Math.min(L.clientWidth-60,Math.max(60-win.offsetWidth,sl+e.clientX-sx))+"px";
+    win.style.top=Math.min(L.clientHeight-42,Math.max(0,st+e.clientY-sy))+"px"});
+  ["pointerup","pointercancel"].forEach(v=>h.addEventListener(v,()=>on=false));
+}
+function resize(win){
+  const h=$(".resize",win);let x,y,w,hh,on=false;
+  h.addEventListener("pointerdown",e=>{on=true;x=e.clientX;y=e.clientY;w=win.offsetWidth;hh=win.offsetHeight;h.setPointerCapture(e.pointerId);e.stopPropagation();e.preventDefault()});
+  h.addEventListener("pointermove",e=>{if(!on)return;win.style.width=Math.max(260,w+e.clientX-x)+"px";win.style.height=Math.max(190,hh+e.clientY-y)+"px"});
+  ["pointerup","pointercancel"].forEach(v=>h.addEventListener(v,()=>on=false));
+}
+const onResize=()=>document.body.classList.toggle("mob",innerWidth<650);
+addEventListener("resize",onResize);onResize();
+
+/* ---------- WEB VIEW (Browser + installed web apps) ---------- */
+function resolveInput(raw){
+  raw=raw.trim();if(!raw)return null;
+  if(/^https?:\/\//i.test(raw))return validURL(raw);
+  if(/^[\w-]+(\.[\w-]+)+([\/?#].*)?$/i.test(raw)&&!/\s/.test(raw))return validURL("https://"+raw);
+  return S.search.replace("%s",encodeURIComponent(raw));
+}
+function webview(body,win,{url,mode,fixed}){
+  let viaProxy=mode==="proxy",hist=[],idx=-1,cur="";
+  body.innerHTML=`<div class="bar"><button class="sec" data-a="b" title="Back"><i class="fa-solid fa-arrow-left"></i></button><button class="sec" data-a="f" title="Forward"><i class="fa-solid fa-arrow-right"></i></button><button class="sec" data-a="r" title="Reload"><i class="fa-solid fa-rotate-right"></i></button><button class="sec" data-a="h" title="Home"><i class="fa-solid fa-house"></i></button>
+   <input class="ui" placeholder="Search or enter address" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" data-a="g">Go</button></div>
+   <div class="wv"><iframe title="Web view" referrerpolicy="no-referrer" allow="fullscreen;autoplay;clipboard-write;geolocation;microphone;camera;encrypted-media" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-presentation"></iframe><div class="start" hidden></div></div>
+   <div class="hint"><span>Blank or refused? That site forbids embedding.</span><button data-a="p"></button><button data-a="x">Open in new tab</button></div>`;
+  const inp=$("input",body),fr=$("iframe",body),st=$(".start",body),pb=$('[data-a=p]',body);
+  const setP=()=>pb.textContent=viaProxy?"Proxy: ON":"Proxy: OFF";setP();
+  function target(u){if(!viaProxy)return u;if(!S.proxy||!S.proxy.includes("{url}")){toast("Set a proxy in Settings → Browser first");return u}return S.proxy.replace("{url}",encodeURIComponent(u))}
+  function showStart(){
+    st.hidden=false;fr.removeAttribute("src");inp.value="";cur="aura://start";
+    st.innerHTML=`<h2 style="margin:0 0 6px"><i class="fa-solid fa-globe" style="color:var(--accent)"></i> Browser</h2><div class="muted">Search with ${esc(new URL(S.search.replace("%s","x")).hostname)} or type an address</div>
+      <div class="tiles">${[...CATALOG,...apps.map(a=>({name:a.name,url:a.url}))].map(a=>`<button class="tile" data-u="${esc(a.url)}"><img alt="" src="${esc(favicon(a.url))}">${esc(a.name)}</button>`).join("")}</div>`;
+    $$(".tile",st).forEach(t=>t.onclick=()=>go(t.dataset.u));
   }
-}
-
-function faviconFor(url) {
-  try {
-    const parsed = new URL(url);
-    return "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(parsed.hostname) + "&sz=128";
-  } catch {
-    return faviconForSafeFallback();
+  function go(raw,rec=true){
+    if(raw==="aura://start"){if(rec){hist=hist.slice(0,idx+1);hist.push(raw);idx=hist.length-1}return showStart()}
+    const u=resolveInput(raw);if(!u)return toast("Enter a valid address");
+    st.hidden=true;cur=u;inp.value=u;fr.src=target(u);
+    win.setTitle&&!fixed&&win.setTitle("Browser");
+    if(rec){hist=hist.slice(0,idx+1);hist.push(u);idx=hist.length-1}
   }
+  body.addEventListener("click",e=>{const a=e.target.closest("[data-a]")?.dataset.a;if(!a)return;
+    if(a==="g")go(inp.value);
+    if(a==="b"){if(idx>0){idx--;go(hist[idx],false)}else toast("No previous page")}
+    if(a==="f"){if(idx<hist.length-1){idx++;go(hist[idx],false)}else toast("No next page")}
+    if(a==="r"){if(cur&&cur!=="aura://start")fr.src=target(cur)}
+    if(a==="h")go(fixed||S.home);
+    if(a==="p"){viaProxy=!viaProxy;setP();if(cur&&cur!=="aura://start")fr.src=target(cur)}
+    if(a==="x"&&cur&&cur!=="aura://start")window.open(cur,"_blank","noopener")});
+  inp.onkeydown=e=>{if(e.key==="Enter")go(inp.value)};
+  go(url||S.home);
 }
 
-function faviconForSafeFallback() {
-  return "data:image/svg+xml," + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="14" fill="#374151"/><text x="32" y="42" text-anchor="middle" font-size="32" fill="white" font-family="sans-serif">A</text></svg>'
-  );
+/* ---------- FILES / EDITOR ---------- */
+const isText=f=>f.text;
+function uniqueName(n,skip){let b=n,i=2;while(files.some(f=>f.name===n&&f.id!==skip)){const d=b.lastIndexOf(".");n=d>0?b.slice(0,d)+` (${i})`+b.slice(d):b+` (${i})`;i++}return n}
+function download(name,blobOrUrl){const a=document.createElement("a");const isB=blobOrUrl instanceof Blob;a.href=isB?URL.createObjectURL(blobOrUrl):blobOrUrl;a.download=name;document.body.appendChild(a);a.click();a.remove();if(isB)setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function openFile(f){
+  if(isText(f))openApp("editor",{id:f.id},"editor:"+f.id);
+  else if(/^(image|audio|video)\//.test(f.mime))openApp("media",{fileId:f.id},"media");
+  else download(f.name,f.data);
 }
-
-/* =====================================================
-   STORAGE ENGINE (GitHub Pages / Browser LocalStorage)
-   ===================================================== */
-
-const StorageEngine = {
-  available: true,
-  init() {
-    try {
-      const testKey = STORAGE_PREFIX + "test";
-      localStorage.setItem(testKey, "ok");
-      localStorage.removeItem(testKey);
-    } catch {
-      this.available = false;
-    }
-  },
-  get(key, fallback) {
-    if (!this.available) return fallback;
-    try {
-      const val = localStorage.getItem(STORAGE_PREFIX + key);
-      return val === null ? fallback : JSON.parse(val);
-    } catch {
-      return fallback;
-    }
-  },
-  set(key, value) {
-    if (!this.available) return false;
-    try {
-      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  clear() {
-    if (!this.available) return;
-    try {
-      Object.keys(localStorage)
-        .filter(k => k.startsWith(STORAGE_PREFIX))
-        .forEach(k => localStorage.removeItem(k));
-    } catch {}
+function initFiles(b,win){
+  b.innerHTML=`<div class="bar"><button class="btn" data-a="n"><i class="fa-solid fa-plus"></i> New</button><label class="sec" style="cursor:pointer"><i class="fa-solid fa-upload"></i> Upload<input type="file" multiple hidden></label><span class="muted" style="margin-left:auto;align-self:center" id="fcount"></span></div><div class="pad" id="flist" style="overflow:auto"></div>`;
+  const list=$("#flist",b);
+  function draw(){
+    $("#fcount",b).textContent=files.length+" file(s)";
+    list.innerHTML=files.length?"":'<div class="muted">No files yet. Create one or upload from your device.</div>';
+    [...files].sort((a,c)=>c.mtime-a.mtime).forEach(f=>{
+      const r=document.createElement("div");r.className="li";
+      const ic=isText(f)?"fa-file-lines":/^image/.test(f.mime)?"fa-file-image":/^audio/.test(f.mime)?"fa-file-audio":/^video/.test(f.mime)?"fa-file-video":"fa-file";
+      r.innerHTML=`<i class="fa-solid ${ic}" style="font-size:20px;color:var(--accent)"></i><div class="grow"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div><div class="muted">${new Date(f.mtime).toLocaleString()} · ${(f.data.length/1024).toFixed(1)} KB</div></div>
+       <button class="sec" data-a="o" title="Open"><i class="fa-solid fa-folder-open"></i></button><button class="sec" data-a="d" title="Download"><i class="fa-solid fa-download"></i></button><button class="sec" data-a="e" title="Rename"><i class="fa-solid fa-pen"></i></button><button class="danger" data-a="x" title="Delete"><i class="fa-solid fa-trash"></i></button>`;
+      r.onclick=e=>{const a=e.target.closest("[data-a]")?.dataset.a;
+        if(a==="o")openFile(f);
+        if(a==="d")download(f.name,isText(f)?new Blob([f.data],{type:f.mime}):f.data);
+        if(a==="e"){const n=prompt("Rename file",f.name);if(n&&n.trim()){f.name=uniqueName(n.trim(),f.id);saveFiles()}}
+        if(a==="x"&&confirm("Delete "+f.name+"?")){files=files.filter(x=>x.id!==f.id);closeWin("editor:"+f.id);saveFiles()}};
+      r.ondblclick=e=>{if(!e.target.closest("button"))openFile(f)};
+      list.appendChild(r)});
   }
-};
-
-StorageEngine.init();
-
-userApps = StorageEngine.get("apps", []);
-settings = StorageEngine.get("settings", {
-  wallpaper: DEFAULT_WALLPAPER,
-  accent: "#6366f1",
-  opacity: 0.94,
-  blur: 24
-});
-noteText = StorageEngine.get("notes", "Welcome to AuraOS on GitHub Pages!\n\nYour data persists automatically in this browser.");
-
-if (!Array.isArray(userApps)) userApps = [];
-
-function saveApps() { StorageEngine.set("apps", userApps); }
-function saveSettings() { StorageEngine.set("settings", settings); }
-function saveNotes() { StorageEngine.set("notes", noteText); }
-
-function applySettings() {
-  document.documentElement.style.setProperty("--accent", settings.accent);
-  document.documentElement.style.setProperty("--window-opacity", settings.opacity);
-  document.documentElement.style.setProperty("--window-blur", settings.blur + "px");
-  $("osBody").style.backgroundImage = `url("${settings.wallpaper}")`;
-  $("storageStatus").textContent = StorageEngine.available ? "Cloud & Local Sync Active" : "Storage Restricted";
+  b.addEventListener("click",e=>{if(e.target.closest("[data-a=n]"))openApp("editor",{},"editor:new"+uid())});
+  $("input[type=file]",b).onchange=e=>{[...e.target.files].forEach(file=>{
+    const txt=/^text\//.test(file.type)||/\.(txt|md|json|csv|js|css|html|xml|log|ini|yml|yaml)$/i.test(file.name);
+    const rd=new FileReader();rd.onload=()=>{files.push({id:uid(),name:uniqueName(file.name),mime:file.type||"application/octet-stream",text:txt,data:rd.result,mtime:Date.now()});saveFiles()};
+    txt?rd.readAsText(file):rd.readAsDataURL(file)});e.target.value=""};
+  addEventListener("fs",draw);win.cleanup.push(()=>removeEventListener("fs",draw));draw();
+}
+function initEditor(b,win,args){
+  let f=args.id?files.find(x=>x.id===args.id):null;
+  b.innerHTML=`<div class="bar"><input class="ui" id="en" placeholder="File name"><button class="btn" id="es"><i class="fa-solid fa-floppy-disk"></i> Save</button><button class="sec" id="ed" title="Download"><i class="fa-solid fa-download"></i></button></div>
+   <textarea class="ui" id="ea" spellcheck="false" style="flex:1;border:0;border-radius:0;resize:none;background:transparent;font-family:ui-monospace,Menlo,Consolas,monospace;padding:12px" placeholder="Start typing…"></textarea><div class="hint" id="est"></div>`;
+  const n=$("#en",b),a=$("#ea",b),s=$("#est",b);let dirty=false;
+  n.value=f?f.name:"Untitled.txt";a.value=f?f.data:"";
+  const stat=()=>s.textContent=`${a.value.length} chars · ${a.value.trim()?a.value.trim().split(/\s+/).length:0} words${dirty?" · unsaved":""}`;stat();
+  win.setTitle("Editor – "+n.value);
+  function save(){const name=(n.value.trim()||"Untitled.txt");
+    if(f){f.name=uniqueName(name,f.id);f.data=a.value;f.mtime=Date.now()}
+    else{f={id:uid(),name:uniqueName(name),mime:"text/plain",text:true,data:a.value,mtime:Date.now()};files.push(f)}
+    n.value=f.name;if(saveFiles()){dirty=false;toast("Saved");win.setTitle("Editor – "+f.name);stat()}}
+  a.oninput=()=>{dirty=true;stat()};
+  $("#es",b).onclick=save;
+  $("#ed",b).onclick=()=>download(n.value||"Untitled.txt",new Blob([a.value],{type:"text/plain;charset=utf-8"}));
+  b.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="s"){e.preventDefault();save()}});
+  const orig=closeWin;
 }
 
-applySettings();
-
-/* =====================================================
-   NOTIFICATIONS & CLOCK
-   ===================================================== */
-
-let toastTimer;
-function showToast(msg) {
-  const toast = $("toast");
-  toast.textContent = msg;
-  toast.style.display = "block";
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.style.display = "none", 2800);
+/* ---------- CALCULATOR ---------- */
+function calc(s){
+  const t=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/\s/g,"");let i=0;
+  const num=()=>{if(t[i]==="("){i++;const v=expr();if(t[i]!==")")throw 0;i++;return v}
+    if(t[i]==="-"){i++;return-num()}if(t[i]==="+"){i++;return num()}
+    const m=/^(\d+\.?\d*|\.\d+)/.exec(t.slice(i));if(!m)throw 0;i+=m[0].length;return parseFloat(m[0])};
+  const term=()=>{let v=num();while("*/%".includes(t[i]||"#")){const o=t[i++],r=num();v=o==="*"?v*r:o==="/"?v/r:v%r}return v};
+  const expr=()=>{let v=term();while("+-".includes(t[i]||"#")){const o=t[i++],r=term();v=o==="+"?v+r:v-r}return v};
+  const r=expr();if(i!==t.length||!isFinite(r))throw 0;return r;
+}
+function initCalc(b){
+  b.innerHTML=`<div style="max-width:340px;width:100%;margin:auto;padding:14px" tabindex="0" id="cw"><input id="cd" class="ui" readonly value="0" style="font-size:24px;text-align:right;margin-bottom:6px"><div class="muted" id="ch" style="text-align:right;min-height:16px;margin-bottom:8px"></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">${["C","(",")","÷","7","8","9","×","4","5","6","−","1","2","3","+","0",".","⌫","="].map(v=>`<button class="sec" data-v="${v}" style="padding:14px">${v}</button>`).join("")}</div></div>`;
+  const d=$("#cd",b),h=$("#ch",b);let ex="0";
+  function press(v){
+    if(v==="C"){ex="0";h.textContent=""}
+    else if(v==="⌫")ex=ex.length>1&&ex!=="Error"?ex.slice(0,-1):"0";
+    else if(v==="="){try{const r=calc(ex);h.textContent=ex+" =";ex=String(+r.toFixed(10))}catch{ex="Error"}}
+    else ex=(ex==="0"&&!/[.]/.test(v)||ex==="Error")?v:ex+v;
+    d.value=ex}
+  b.addEventListener("click",e=>{const v=e.target.closest("[data-v]")?.dataset.v;if(v)press(v)});
+  $("#cw",b).addEventListener("keydown",e=>{const m={"*":"×","/":"÷","-":"−",Enter:"=","=":"=",Backspace:"⌫",Escape:"C",Delete:"C"};const k=m[e.key]||e.key;
+    if(/^[0-9+().]$/.test(k)||"×÷−=⌫C".includes(k)&&k.length===1){e.preventDefault();press(k)}});
 }
 
-function updateClock() {
-  $("sysClock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+/* ---------- TASKS ---------- */
+function initTasks(b,win){
+  b.innerHTML=`<div class="bar"><input class="ui" placeholder="Add a task and press Enter"><button class="btn">Add</button></div><div class="pad" style="overflow:auto"></div><div class="hint"></div>`;
+  const inp=$("input",b),box=$(".pad",b),ft=$(".hint",b);
+  function draw(){box.innerHTML=tasks.length?"":'<div class="muted">Nothing to do. Enjoy!</div>';
+    tasks.forEach(t=>{const r=document.createElement("div");r.className="li";
+      r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} style="width:18px;height:18px"><div class="grow" style="${t.done?"text-decoration:line-through;opacity:.5":""}">${esc(t.text)}</div><button class="danger"><i class="fa-solid fa-xmark"></i></button>`;
+      $("input",r).onchange=e=>{t.done=e.target.checked;saveTasks();draw()};
+      $("button",r).onclick=()=>{tasks=tasks.filter(x=>x!==t);saveTasks();draw()};box.appendChild(r)});
+    ft.innerHTML=`<span>${tasks.filter(t=>!t.done).length} remaining</span>`+(tasks.some(t=>t.done)?'<button>Clear completed</button>':"");
+    const c=$("button",ft);if(c)c.onclick=()=>{tasks=tasks.filter(t=>!t.done);saveTasks();draw()}}
+  const add=()=>{const v=inp.value.trim();if(v){tasks.push({text:v,done:false});saveTasks();inp.value="";draw()}};
+  $(".btn",b).onclick=add;inp.onkeydown=e=>{if(e.key==="Enter")add()};draw();
 }
-updateClock();
-setInterval(updateClock, 1000);
 
-/* =====================================================
-   APP REGISTRY
-   ===================================================== */
+/* ---------- CLOCK ---------- */
+function initClock(b,win){
+  b.innerHTML=`<div class="bar"><button class="sec" data-t="c">Clock</button><button class="sec" data-t="s">Stopwatch</button><button class="sec" data-t="t">Timer</button></div><div class="pad" id="cv" style="text-align:center;margin:auto;width:100%"></div>`;
+  const v=$("#cv",b);let tick=null;const stop=()=>{clearInterval(tick);tick=null};win.cleanup.push(stop);
+  const fmt=ms=>{const s=Math.max(0,ms)/1000;return[Math.floor(s/3600),Math.floor(s%3600/60),Math.floor(s%60)].map(x=>String(x).padStart(2,"0")).join(":")+"."+String(Math.floor(ms%1000/10)).padStart(2,"0")};
+  const big=id=>`<div id="${id}" style="font-size:44px;font-weight:300;font-variant-numeric:tabular-nums;margin:14px 0"></div>`;
+  function show(t){stop();
+    if(t==="c"){v.innerHTML=big("d")+`<div class="muted" id="dd"></div><div class="muted">${Intl.DateTimeFormat().resolvedOptions().timeZone}</div>`;
+      const u=()=>{const n=new Date();$("#d",v).textContent=n.toLocaleTimeString([],{hour12:!S.clock24});$("#dd",v).textContent=n.toLocaleDateString([],{weekday:"long",year:"numeric",month:"long",day:"numeric"})};u();tick=setInterval(u,500)}
+    if(t==="s"){let el=0,st=0,run=false,laps=[];v.innerHTML=big("d")+`<div class="row" style="justify-content:center"><button class="btn" id="a">Start</button><button class="sec" id="l">Lap</button><button class="sec" id="r">Reset</button></div><div id="lp" class="muted" style="margin-top:10px"></div>`;
+      const u=()=>$("#d",v).textContent=fmt(el+(run?performance.now()-st:0));u();
+      $("#a",v).onclick=()=>{if(run){el+=performance.now()-st;run=false;stop();$("#a",v).textContent="Start";u()}else{st=performance.now();run=true;tick=setInterval(u,30);$("#a",v).textContent="Pause"}};
+      $("#l",v).onclick=()=>{if(run||el){laps.unshift(fmt(el+(run?performance.now()-st:0)));$("#lp",v).innerHTML=laps.map((l,i)=>`Lap ${laps.length-i}: ${l}`).join("<br>")}};
+      $("#r",v).onclick=()=>{stop();el=0;run=false;laps=[];$("#a",v).textContent="Start";$("#lp",v).innerHTML="";u()}}
+    if(t==="t"){let end=0,left=0,run=false;v.innerHTML=big("d")+`<div class="row" style="justify-content:center;margin-bottom:10px"><input class="ui" id="m" type="number" min="0" value="5" style="width:80px"> <span>min</span><input class="ui" id="s" type="number" min="0" max="59" value="0" style="width:80px"> <span>sec</span></div><div class="row" style="justify-content:center"><button class="btn" id="a">Start</button><button class="sec" id="r">Reset</button></div>`;
+      const set=()=>left=(+$("#m",v).value*60+ +$("#s",v).value)*1000;set();const u=()=>$("#d",v).textContent=fmt(run?end-Date.now():left);u();
+      $("#a",v).onclick=()=>{if(run){left=end-Date.now();run=false;stop();$("#a",v).textContent="Resume"}else{if(!left)set();if(!left)return;end=Date.now()+left;run=true;$("#a",v).textContent="Pause";
+        tick=setInterval(()=>{u();if(end-Date.now()<=0){stop();run=false;left=0;$("#d",v).textContent=fmt(0);$("#a",v).textContent="Start";toast("⏰ Timer finished");try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.start();setTimeout(()=>{o.stop();c.close()},800)}catch{}}},50)}};
+      $("#r",v).onclick=()=>{stop();run=false;set();$("#a",v).textContent="Start";u()};$$("input",v).forEach(i=>i.onchange=()=>{if(!run){set();u()}})}}
+  b.querySelectorAll("[data-t]").forEach(x=>x.onclick=()=>show(x.dataset.t));show("c");
+}
 
-function getAllApps() { return [...DEFAULT_APPS, ...userApps]; }
-function getApp(id) { return getAllApps().find(a => a.id === id); }
+/* ---------- PAINT ---------- */
+function initPaint(b,win){
+  b.innerHTML=`<div class="bar" style="flex-wrap:wrap"><input type="color" id="pc" value="#ffffff" style="width:40px;height:36px;border:0;background:none"><input type="range" id="ps" min="1" max="60" value="5" style="width:90px"><button class="sec" id="pe">Eraser</button><button class="sec" id="pk">Clear</button><button class="sec" id="pv"><i class="fa-solid fa-floppy-disk"></i> Save to Files</button><button class="sec" id="pd"><i class="fa-solid fa-download"></i></button></div><div style="flex:1;min-height:0;overflow:auto;display:flex"><canvas id="cv" width="1000" height="650" style="width:100%;max-width:100%;height:auto;margin:auto;touch-action:none;background:#0f172a;cursor:crosshair"></canvas></div>`;
+  const c=$("#cv",b),x=c.getContext("2d");x.fillStyle="#0f172a";x.fillRect(0,0,c.width,c.height);x.lineCap=x.lineJoin="round";
+  let on=false,er=false,lx,ly;const pos=e=>{const r=c.getBoundingClientRect();return[(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]};
+  c.onpointerdown=e=>{on=true;[lx,ly]=pos(e);c.setPointerCapture(e.pointerId);draw(e)};
+  const draw=e=>{const[px,py]=pos(e);x.strokeStyle=er?"#0f172a":$("#pc",b).value;x.lineWidth=+$("#ps",b).value;x.beginPath();x.moveTo(lx,ly);x.lineTo(px+.01,py);x.stroke();lx=px;ly=py};
+  c.onpointermove=e=>{if(on)draw(e)};c.onpointerup=c.onpointercancel=()=>on=false;
+  $("#pe",b).onclick=e=>{er=!er;e.target.style.background=er?"var(--accent)":""};
+  $("#pk",b).onclick=()=>{x.fillStyle="#0f172a";x.fillRect(0,0,c.width,c.height)};
+  $("#pd",b).onclick=()=>download("drawing.png",c.toDataURL("image/png"));
+  $("#pv",b).onclick=()=>{files.push({id:uid(),name:uniqueName("drawing.png"),mime:"image/png",text:false,data:c.toDataURL("image/png"),mtime:Date.now()});if(saveFiles())toast("Saved to Files")};
+}
 
-function appIconHTML(app, size = 24) {
-  if (app.custom) {
-    return `<img src="${escapeHTML(app.icon)}" alt="" style="width:${size}px;height:${size}px;object-fit:contain;border-radius:6px" onerror="this.src='${faviconForSafeFallback()}'">`;
+/* ---------- MEDIA ---------- */
+function initMedia(b,win,args){
+  b.innerHTML=`<div class="bar"><label class="sec" style="cursor:pointer"><i class="fa-solid fa-folder-open"></i> Open files<input type="file" accept="audio/*,video/*,image/*" multiple hidden></label><input class="ui" placeholder="Paste a media link or YouTube URL"><button class="btn">Play</button></div>
+  <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000" id="stage"><span class="muted">Open a file or paste a link</span></div><div id="pl" class="pad" style="max-height:30%;overflow:auto;padding:6px"></div>`;
+  const st=$("#stage",b),pl=$("#pl",b);let list=[],urls=[];win.cleanup.push(()=>urls.forEach(u=>URL.revokeObjectURL(u)));
+  function play(it){
+    let h="";
+    if(it.yt)h=`<iframe src="${esc(it.yt)}" style="width:100%;height:100%;border:0" allow="autoplay;fullscreen;encrypted-media" allowfullscreen></iframe>`;
+    else if(/^image/.test(it.type))h=`<img src="${esc(it.src)}" style="max-width:100%;max-height:100%;object-fit:contain">`;
+    else if(/^video/.test(it.type))h=`<video src="${esc(it.src)}" controls autoplay playsinline style="max-width:100%;max-height:100%"></video>`;
+    else h=`<audio src="${esc(it.src)}" controls autoplay style="width:90%"></audio>`;
+    st.innerHTML=h;win.setTitle("Media – "+it.name);
+    const m=$("audio,video",st);if(m)m.onended=()=>{const i=list.indexOf(it);if(list[i+1])play(list[i+1])}}
+  function draw(){pl.innerHTML=list.map((it,i)=>`<div class="li" data-i="${i}" style="cursor:pointer"><i class="fa-solid fa-play"></i><div class="grow">${esc(it.name)}</div></div>`).join("");
+    $$("[data-i]",pl).forEach(r=>r.onclick=()=>play(list[+r.dataset.i]))}
+  $("input[type=file]",b).onchange=e=>{[...e.target.files].forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);list.push({name:f.name,src:u,type:f.type||"audio/"})});draw();if(list[0])play(list[list.length-e.target.files.length]);e.target.value=""};
+  function link(v){v=v.trim();if(!validURL(v))return toast("Enter a valid link");
+    const y=v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+    const it=y?{name:"YouTube video",yt:"https://www.youtube.com/embed/"+y[1]+"?autoplay=1"}:{name:v.split("/").pop()||v,src:v,type:/\.(mp4|webm|ogv|mov)(\?|$)/i.test(v)?"video/":/\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(v)?"image/":"audio/"};
+    list.push(it);draw();play(it)}
+  $(".btn",b).onclick=()=>link($("input.ui",b).value);$("input.ui",b).onkeydown=e=>{if(e.key==="Enter")link(e.target.value)};
+  win.onArgs=a=>{const f=files.find(x=>x.id===a.fileId);if(f){const it={name:f.name,src:f.data,type:f.mime};list.push(it);draw();play(it)}};
+  win.onArgs(args);
+}
+
+/* ---------- TERMINAL ---------- */
+function initTerm(b,win){
+  b.innerHTML=`<div class="term" id="t"></div>`;const t=$("#t",b);let hist=[],hi=0;
+  const out=s=>{t.insertBefore(document.createTextNode(s+"\n"),$("#line",t))};
+  t.innerHTML=`<span id="line">$ <input id="ti" autocomplete="off" autocapitalize="off" spellcheck="false"></span>`;
+  const inp=$("#ti",t);t.onclick=()=>inp.focus();
+  out("AuraOS terminal. Type 'help'.");
+  const cmds={
+   help:()=>"Commands: help ls cat rm touch echo open apps date theme accent wallpaper clear whoami fullscreen",
+   ls:()=>files.map(f=>f.name).join("\n")||"(no files)",
+   cat:a=>{const f=files.find(x=>x.name===a.join(" "));return f?(isText(f)?f.data:"(binary file)"):"No such file"},
+   rm:a=>{const n=files.length;files=files.filter(x=>x.name!==a.join(" "));saveFiles();return n>files.length?"Removed":"No such file"},
+   touch:a=>{const n=a.join(" ");if(!n)return"Usage: touch name";files.push({id:uid(),name:uniqueName(n),mime:"text/plain",text:true,data:"",mtime:Date.now()});saveFiles();return"Created"},
+   echo:a=>a.join(" "),
+   open:a=>{const q=a.join(" ").toLowerCase(),x=allApps().find(p=>p.id===q||p.name.toLowerCase()===q);if(!x)return"Unknown app";openApp(x.id);return"Opening "+x.name},
+   apps:()=>allApps().map(a=>a.name).join(", "),
+   date:()=>new Date().toString(),
+   whoami:()=>"user@auraos",
+   theme:a=>{if(!["dark","light"].includes(a[0]))return"Usage: theme dark|light";S.theme=a[0];saveS();applySettings();return"OK"},
+   accent:a=>{if(!/^#[0-9a-f]{6}$/i.test(a[0]||""))return"Usage: accent #rrggbb";S.accent=a[0];saveS();applySettings();return"OK"},
+   wallpaper:a=>{if(!validURL(a[0]))return"Usage: wallpaper https://image-url";S.wallpaper=a[0];saveS();applySettings();return"OK"},
+   fullscreen:()=>{toggleFS();return""},
+   clear:()=>{$$("#t",b).forEach(()=>{});t.childNodes.forEach(n=>{if(n.nodeType===3)n.remove()});return""}};
+  inp.onkeydown=e=>{
+    if(e.key==="Enter"){const v=inp.value.trim();out("$ "+v);inp.value="";if(v){hist.push(v);hi=hist.length;const[c,...a]=v.split(/\s+/);const r=cmds[c]?cmds[c](a):"Command not found: "+c;if(r)out(r)}t.scrollTop=t.scrollHeight}
+    if(e.key==="ArrowUp"){hi=Math.max(0,hi-1);inp.value=hist[hi]||"";e.preventDefault()}
+    if(e.key==="ArrowDown"){hi=Math.min(hist.length,hi+1);inp.value=hist[hi]||""}};
+  setTimeout(()=>{if(!coarse)inp.focus()},50);
+}
+
+/* ---------- APP STORE ---------- */
+function installApp(name,url,icon,mode){
+  const u=validURL(url);if(!name||!u)return toast("Enter a valid name and URL");
+  apps.push({id:"web_"+uid(),name:name.slice(0,40),url:u,icon:validURL(icon||"")||favicon(u),custom:true,mode:mode||"direct"});
+  saveApps();renderDesktop();dispatchEvent(new Event("apps"));toast(name+" installed");
+}
+BUILTIN.forEach(a=>a);
+function initStore(b,win){
+  b.innerHTML=`<div class="pad" style="overflow:auto"><h3 style="margin:0 0 4px">Featured web apps</h3><div class="muted">These sites usually allow embedding. Installed apps run inside AuraOS windows.</div><div id="cat"></div>
+  <h3 style="margin:18px 0 6px">Install any website</h3><div class="muted" style="margin-bottom:8px">Sites that block embedding need a proxy (Settings → Browser).</div>
+  <input class="ui" id="an" placeholder="App name" maxlength="40" style="margin-bottom:8px"><input class="ui" id="au" placeholder="https://example.com" style="margin-bottom:8px"><input class="ui" id="ai" placeholder="Custom icon URL (optional)" style="margin-bottom:8px">
+  <select class="ui" id="am" style="margin-bottom:10px"><option value="direct">Load directly</option><option value="proxy">Load through proxy</option></select>
+  <div class="row"><img id="ap" width="34" height="34" src="${fallbackIcon}" alt=""><button class="btn" id="ab">Install app</button></div></div>`;
+  const cat=$("#cat",b);
+  function draw(){cat.innerHTML=CATALOG.map(c=>{const inst=apps.some(a=>a.url===c.url);return`<div class="li"><img src="${esc(favicon(c.url))}" alt=""><div class="grow"><div style="font-size:12px;font-weight:600">${esc(c.name)}</div><div class="muted">${esc(c.url)}</div></div><button class="${inst?"sec":"btn"}" data-u="${esc(c.url)}" ${inst?"disabled":""}>${inst?"Installed":"Install"}</button></div>`}).join("");
+    $$("[data-u]:not([disabled])",cat).forEach(x=>x.onclick=()=>{const c=CATALOG.find(y=>y.url===x.dataset.u);installApp(c.name,c.url)})}
+  draw();addEventListener("apps",draw);win.cleanup.push(()=>removeEventListener("apps",draw));
+  const pv=()=>{const i=validURL($("#ai",b).value),u=validURL($("#au",b).value);$("#ap",b).src=i||(u?favicon(u):fallbackIcon)};$("#au",b).oninput=$("#ai",b).oninput=pv;
+  $("#ab",b).onclick=()=>{installApp($("#an",b).value.trim(),$("#au",b).value.trim(),$("#ai",b).value.trim(),$("#am",b).value);$("#an",b).value=$("#au",b).value=$("#ai",b).value="";pv()};
+}
+
+/* ---------- SETTINGS ---------- */
+function sel(k,o){return`<select class="ui" data-k="${k}">${o.map(([v,l])=>`<option value="${v}" ${S[k]==v?"selected":""}>${l}</option>`).join("")}</select>`}
+function rng(k,min,max,step){return`<input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${S[k]}" style="width:100%">`}
+function chk(k,l){return`<label style="display:flex;gap:8px;align-items:center;font-size:12px"><input type="checkbox" data-k="${k}" ${S[k]?"checked":""}> ${l}</label>`}
+function initSettings(b,win){
+  const tabs=[["look","fa-palette","Appearance"],["win","fa-window-restore","Windows"],["desk","fa-desktop","Desktop"],["web","fa-globe","Browser"],["apps","fa-cubes","Apps"],["sys","fa-microchip","System"]];
+  b.innerHTML=`<div class="set"><nav>${tabs.map(t=>`<button data-t="${t[0]}"><i class="fa-solid ${t[1]}"></i>${t[2]}</button>`).join("")}</nav><main></main></div>`;
+  const main=$("main",b);let cur="look";
+  const pages={
+   look:()=>`<div class="grp"><h3>Theme</h3><label>Mode</label>${sel("theme",[["dark","Dark"],["light","Light"]])}<label>Accent color</label><div class="row" style="flex-wrap:wrap">${["#6366f1","#3b82f6","#10b981","#f59e0b","#ef4444","#ec4899","#8b5cf6","#06b6d4"].map(c=>`<button class="sw" data-c="${c}" style="background:${c}" title="${c}"></button>`).join("")}<input type="color" data-k="accent" value="${S.accent}" style="width:36px;height:34px;border:0;background:none"></div></div>
+     <div class="grp"><h3>Wallpaper</h3><div class="row" style="flex-wrap:wrap;margin-bottom:6px">${WALLS.map((w,i)=>`<button class="wp" data-w="${i}" style="background-image:${/^http/.test(w)?`url('${w}')`:w}"></button>`).join("")}</div>
+     <label>Image URL</label><div class="row"><input class="ui" id="wu" placeholder="https://…/image.jpg"><button class="btn" id="wa">Apply</button></div><label>Or upload from your device</label><input type="file" id="wf" accept="image/*" class="ui"></div>`,
+   win:()=>`<div class="grp"><h3>Windows</h3><label>Transparency</label>${rng("opacity",.4,1,.02)}<label>Background blur</label>${rng("blur",0,40,1)}<label>Corner radius</label>${rng("rad",0,28,1)}<label>Text size</label>${rng("fs",11,20,1)}<label>&nbsp;</label>${chk("anim","Window animations")}</div>`,
+   desk:()=>`<div class="grp"><h3>Desktop</h3><label>Icon size</label>${rng("iconSize",24,64,2)}<label>&nbsp;</label>${chk("showLabels","Show icon labels")}<label>Open apps with</label>${sel("openMode",[["auto","Automatic (tap on touch, double-click on mouse)"],["single","Single click / tap"],["double","Double click"]])}</div>
+     <div class="grp"><h3>Clock</h3>${chk("clock24","24-hour time")}<label>&nbsp;</label>${chk("seconds","Show seconds")}</div>`,
+   web:()=>`<div class="grp"><h3>Browser</h3><label>Search engine (use %s for the query)</label><input class="ui" data-k="search" value="${esc(S.search)}"><div class="muted">Many search engines forbid embedding. Wikipedia works directly; others need a proxy.</div>
+     <label>Home page</label><input class="ui" data-k="home" value="${esc(S.home)}"><div class="muted">Use aura://start for the built-in start page.</div><label>Default load mode</label>${sel("embedDefault",[["direct","Direct"],["proxy","Through proxy"]])}</div>
+     <div class="grp"><h3>Proxy</h3><div class="muted">URL template of a proxy you control that strips frame-blocking headers. Use {url} where the encoded address goes, e.g. <code>https://your-worker.workers.dev/?u={url}</code>. Only use proxies you trust, since they see the pages you load.</div><label>Proxy template</label><input class="ui" data-k="proxy" placeholder="https://your-worker.workers.dev/?u={url}" value="${esc(S.proxy)}"></div>`,
+   apps:()=>`<div class="grp"><h3>Installed web apps</h3>${apps.length?apps.map(a=>`<div class="li"><img src="${esc(a.icon||fallbackIcon)}" alt=""><div class="grow"><div style="font-size:12px;font-weight:600">${esc(a.name)}</div><div class="muted">${esc(a.url)}</div></div><select class="ui" data-m="${a.id}" style="width:auto"><option value="direct" ${a.mode!=="proxy"?"selected":""}>Direct</option><option value="proxy" ${a.mode==="proxy"?"selected":""}>Proxy</option></select><button class="sec" data-e="${a.id}">Edit</button><button class="danger" data-x="${a.id}">Remove</button></div>`).join(""):'<div class="muted">No web apps installed.</div>'}<div style="margin-top:10px"><button class="btn" id="gs">Open App Store</button></div></div>`,
+   sys:()=>{let used=0;try{Object.keys(localStorage).filter(k=>k.startsWith(P)).forEach(k=>used+=localStorage[k].length)}catch{}
+     return`<div class="grp"><h3>System</h3><label>Exit URL (power button → Exit)</label><input class="ui" data-k="exitUrl" value="${esc(S.exitUrl)}"><label>Storage used by AuraOS</label><div class="muted">${(used/1024).toFixed(1)} KB of roughly 5,000 KB</div><div style="margin-top:8px"><button class="sec" onclick="toggleFS()">Toggle fullscreen</button></div></div>
+     <div class="grp"><h3>Backup & restore</h3><div class="muted">Settings, apps, files and tasks in one JSON file.</div><div class="row" style="margin-top:8px"><button class="sec" id="bx">Export</button><label class="sec" style="cursor:pointer">Import<input type="file" id="bi" accept=".json,application/json" hidden></label></div></div>
+     <div class="grp"><h3 style="color:#f87171">Reset</h3><div class="muted">Deletes all AuraOS data in this browser.</div><button class="danger" id="rs" style="margin-top:8px">Factory reset</button></div>
+     <div class="muted" style="padding-top:10px">AuraOS v6 · data is stored locally in this browser.</div>`}
+  };
+  function render(){
+    $$("nav button",b).forEach(x=>x.classList.toggle("on",x.dataset.t===cur));
+    main.innerHTML=pages[cur]();
+    $$("[data-k]",main).forEach(i=>{const h=()=>{const k=i.dataset.k;S[k]=i.type==="checkbox"?i.checked:(i.type==="range"?+i.value:i.value);saveS();applySettings();if(["iconSize","showLabels","openMode","search"].includes(k))renderDesktop();if(k==="theme")render()};i.oninput=h;i.onchange=h});
+    $$("[data-c]",main).forEach(x=>x.onclick=()=>{S.accent=x.dataset.c;saveS();applySettings();render()});
+    $$("[data-w]",main).forEach(x=>x.onclick=()=>{S.wallpaper=WALLS[+x.dataset.w];saveS();applySettings()});
+    const wa=$("#wa",main);if(wa)wa.onclick=()=>{const u=validURL($("#wu",main).value);if(!u)return toast("Enter a valid image URL");S.wallpaper=u;saveS();applySettings()};
+    const wf=$("#wf",main);if(wf)wf.onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image(),u=URL.createObjectURL(f);
+      img.onload=()=>{const sc=Math.min(1,1920/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=img.width*sc;c.height=img.height*sc;c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        S.wallpaper=c.toDataURL("image/jpeg",.8);URL.revokeObjectURL(u);if(saveS()!==false)applySettings()};img.onerror=()=>toast("Could not read image");img.src=u};
+    $$("[data-m]",main).forEach(x=>x.onchange=()=>{apps.find(a=>a.id===x.dataset.m).mode=x.value;saveApps()});
+    $$("[data-x]",main).forEach(x=>x.onclick=()=>{if(!confirm("Remove this app?"))return;closeWin(x.dataset.x);apps=apps.filter(a=>a.id!==x.dataset.x);saveApps();renderDesktop();render()});
+    $$("[data-e]",main).forEach(x=>x.onclick=()=>{const a=apps.find(y=>y.id===x.dataset.e),n=prompt("App name",a.name);if(!n)return;const u=validURL(prompt("App URL",a.url)||"");if(!u)return toast("Invalid URL");a.name=n.slice(0,40);a.url=u;a.icon=favicon(u);saveApps();closeWin(a.id);renderDesktop();render()});
+    const gs=$("#gs",main);if(gs)gs.onclick=()=>openApp("store");
+    const bx=$("#bx",main);if(bx)bx.onclick=()=>download("AuraOS-backup.json",new Blob([JSON.stringify({v:6,S,apps,files,tasks})],{type:"application/json"}));
+    const bi=$("#bi",main);if(bi)bi.onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||!d.S||!Array.isArray(d.apps))throw 0;if(!confirm("Replace current AuraOS data with this backup?"))return;
+      ss("settings",{...DEF,...d.S});ss("apps",d.apps.filter(a=>a&&a.custom&&validURL(a.url)));ss("files",Array.isArray(d.files)?d.files:[]);ss("tasks",Array.isArray(d.tasks)?d.tasks:[]);location.reload()}catch{toast("Invalid backup file")}};
+    const rs=$("#rs",main);if(rs)rs.onclick=()=>{if(!confirm("Factory reset? This deletes all AuraOS data in this browser."))return;try{Object.keys(localStorage).filter(k=>k.startsWith(P)).forEach(k=>localStorage.removeItem(k))}catch{}location.reload()};
   }
-  return `<i class="${escapeHTML(app.icon)}" style="font-size:${size}px;color:${escapeHTML(app.color)}"></i>`;
+  b.addEventListener("click",e=>{const t=e.target.closest("nav [data-t]");if(t){cur=t.dataset.t;render()}});
+  const re=()=>{if(cur==="apps")render()};addEventListener("apps",re);win.cleanup.push(()=>removeEventListener("apps",re));
+  render();
 }
 
-function renderDesktop() {
-  const desktop = $("desktopArea");
-  desktop.innerHTML = "";
-
-  getAllApps().forEach(app => {
-    const item = document.createElement("div");
-    item.className = "desktop-icon";
-    item.dataset.app = app.id;
-
-    const iconDiv = document.createElement("div");
-    if (app.custom) {
-      const img = document.createElement("img");
-      img.src = app.icon;
-      img.alt = "";
-      img.onerror = () => img.src = faviconForSafeFallback();
-      iconDiv.appendChild(img);
-    } else {
-      iconDiv.className = "builtin-icon";
-      iconDiv.innerHTML = `<i class="${escapeHTML(app.icon)}" style="color:${escapeHTML(app.color)}"></i>`;
-    }
-
-    const label = document.createElement("span");
-    label.textContent = app.name;
-
-    item.append(iconDiv, label);
-
-    item.addEventListener("click", e => {
-      e.stopPropagation();
-      document.querySelectorAll(".desktop-icon").forEach(el => el.classList.remove("selected"));
-      item.classList.add("selected");
-    });
-
-    item.addEventListener("dblclick", e => {
-      e.stopPropagation();
-      openApp(app.id);
-    });
-
-    desktop.appendChild(item);
-  });
-
-  renderStartMenu();
-  renderTaskbar();
-}
-
-function renderStartMenu() {
-  const grid = $("startMenuApps");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  getAllApps().forEach(app => {
-    const btn = document.createElement("button");
-    btn.className = "start-app";
-    btn.innerHTML = appIconHTML(app, 32);
-
-    const span = document.createElement("span");
-    span.textContent = app.name;
-
-    btn.appendChild(span);
-    btn.onclick = () => {
-      openApp(app.id);
-      closeStartMenu();
-    };
-    grid.appendChild(btn);
-  });
-}
-
-function toggleStartMenu() {
-  const menu = $("startMenu");
-  menu.hidden = !menu.hidden;
-}
-
-function closeStartMenu() {
-  const menu = $("startMenu");
-  if (menu) menu.hidden = true;
-}
-
-function powerOff() {
-  window.location.href = EXIT_URL;
-}
-
-document.addEventListener("click", e => {
-  if (e.target === $("desktopArea")) {
-    document.querySelectorAll(".desktop-icon").forEach(el => el.classList.remove("selected"));
-    closeStartMenu();
-  }
-});
-
-/* =====================================================
-   TASKBAR & WINDOW MANAGER
-   ===================================================== */
-
-function renderTaskbar() {
-  const taskbar = $("taskbarApps");
-  taskbar.innerHTML = "";
-
-  Object.entries(activeWindows).forEach(([id, win]) => {
-    const app = getApp(id);
-    if (!app) return;
-
-    const btn = document.createElement("button");
-    btn.className = "task-button open";
-    btn.title = app.name;
-    btn.innerHTML = appIconHTML(app, 22);
-
-    btn.onclick = () => {
-      if (win.style.display === "none") {
-        win.style.display = "flex";
-        focusWindow(id);
-      } else if (win.classList.contains("active")) {
-        minimizeWindow(id);
-      } else {
-        focusWindow(id);
-      }
-    };
-    taskbar.appendChild(btn);
-  });
-}
-
-function calculateWindowSize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight - 104;
-  if (w < 640) {
-    return { width: Math.max(260, w - 16), height: Math.max(240, h - 16), left: 8, top: 52 };
-  }
-  const winW = Math.min(840, w - 60);
-  const winH = Math.min(580, h - 50);
-  return { width: winW, height: winH, left: (w - winW) / 2, top: (h - winH) / 2 + 22 };
-}
-
-function openApp(appId) {
-  closeStartMenu();
-
-  if (activeWindows[appId]) {
-    activeWindows[appId].style.display = "flex";
-    focusWindow(appId);
-    return;
-  }
-
-  const app = getApp(appId);
-  if (!app) return;
-
-  const frag = $("windowTemplate").content.cloneNode(true);
-  const win = frag.querySelector(".window");
-
-  win.id = "window_" + appId;
-  const size = calculateWindowSize();
-  win.style.width = size.width + "px";
-  win.style.height = size.height + "px";
-  win.style.left = size.left + "px";
-  win.style.top = size.top + "px";
-
-  win.querySelector(".window-title").textContent = app.name;
-  const iconSm = win.querySelector(".app-icon-sm");
-  if (app.custom) {
-    iconSm.src = app.icon;
-    iconSm.onerror = () => iconSm.src = faviconForSafeFallback();
-  } else {
-    iconSm.style.display = "none";
-  }
-
-  const body = win.querySelector(".window-body");
-  body.innerHTML = getAppContent(app);
-
-  win.querySelector(".close-btn").onclick = () => closeWindow(appId);
-  win.querySelector(".minimize-btn").onclick = () => minimizeWindow(appId);
-
-  let maximized = false;
-  let prevRect = {};
-  win.querySelector(".maximize-btn").onclick = () => {
-    if (!maximized) {
-      prevRect = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
-      win.style.left = "0px";
-      win.style.top = "44px";
-      win.style.width = "100%";
-      win.style.height = "calc(100% - 104px)";
-      win.style.borderRadius = "0";
-      maximized = true;
-    } else {
-      Object.assign(win.style, prevRect);
-      win.style.borderRadius = "14px";
-      maximized = false;
-    }
-  };
-
-  win.addEventListener("pointerdown", () => focusWindow(appId));
-  setupDragging(win);
-  setupResizing(win);
-
-  $("windowContainer").appendChild(win);
-  activeWindows[appId] = win;
-
-  initApp(app, body);
-  focusWindow(appId);
-  renderTaskbar();
-}
-
-function focusWindow(appId) {
-  const win = activeWindows[appId];
-  if (!win) return;
-  zIndexCounter++;
-  Object.values(activeWindows).forEach(w => w.classList.remove("active"));
-  win.classList.add("active");
-  win.style.zIndex = zIndexCounter;
-  $("activeAppTitle").textContent = getApp(appId)?.name || "Desktop";
-}
-
-function closeWindow(appId) {
-  if (!activeWindows[appId]) return;
-  activeWindows[appId].remove();
-  delete activeWindows[appId];
-  $("activeAppTitle").textContent = "Desktop";
-  renderTaskbar();
-}
-
-function minimizeWindow(appId) {
-  if (!activeWindows[appId]) return;
-  activeWindows[appId].style.display = "none";
-  activeWindows[appId].classList.remove("active");
-  $("activeAppTitle").textContent = "Desktop";
-  renderTaskbar();
-}
-
-/* =====================================================
-   DRAGGING & RESIZING
-   ===================================================== */
-
-function setupDragging(win) {
-  const header = win.querySelector(".window-header");
-  let startX = 0, startY = 0, startL = 0, startT = 0, dragging = false;
-
-  header.addEventListener("pointerdown", e => {
-    if (e.target.closest("button")) return;
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startL = win.offsetLeft;
-    startT = win.offsetTop;
-    header.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  header.addEventListener("pointermove", e => {
-    if (!dragging) return;
-    const l = startL + e.clientX - startX;
-    const t = startT + e.clientY - startY;
-    win.style.left = Math.max(0, Math.min(l, window.innerWidth - 80)) + "px";
-    win.style.top = Math.max(44, Math.min(t, window.innerHeight - 90)) + "px";
-  });
-
-  header.addEventListener("pointerup", () => dragging = false);
-}
-
-function setupResizing(win) {
-  const handle = win.querySelector(".resize-handle");
-  let startX = 0, startY = 0, startW = 0, startH = 0, resizing = false;
-
-  handle.addEventListener("pointerdown", e => {
-    resizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startW = win.offsetWidth;
-    startH = win.offsetHeight;
-    handle.setPointerCapture(e.pointerId);
-    e.stopPropagation();
-    e.preventDefault();
-  });
-
-  handle.addEventListener("pointermove", e => {
-    if (!resizing) return;
-    win.style.width = Math.max(280, startW + e.clientX - startX) + "px";
-    win.style.height = Math.max(190, startH + e.clientY - startY) + "px";
-  });
-
-  handle.addEventListener("pointerup", () => resizing = false);
-}
-
-/* =====================================================
-   APPLICATIONS IMPLEMENTATION
-   ===================================================== */
-
-function getAppContent(app) {
-  switch (app.id) {
-    case "browser":
-      return `
-        <div class="p-3.5 flex gap-2.5 border-b border-white/10 bg-black/20">
-          <input id="browserAddress" class="ui-input flex-1" placeholder="Search Brave Search or enter URL" value="https://search.brave.com">
-          <button id="browserGo" class="ui-button">Browse</button>
-        </div>
-        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div class="w-16 h-16 rounded-2xl grid place-items-center mb-4 text-2xl" style="background:rgba(99,102,241,0.2); color:var(--accent)">
-            <i class="fa-solid fa-globe"></i>
-          </div>
-          <h3 class="font-bold text-lg mb-2">AuraOS Web Browser</h3>
-          <p class="text-xs text-gray-400 max-w-sm leading-relaxed mb-6">
-            Search with Brave or launch any web page directly in a new window tab.
-          </p>
-          <div class="flex flex-wrap justify-center gap-2.5">
-            <button id="browserBrave" class="secondary-button"><i class="fa-solid fa-shield-halved mr-1.5 text-orange-400"></i> Brave Search</button>
-            <button id="browserGoogle" class="secondary-button"><i class="fa-brands fa-google mr-1.5 text-blue-400"></i> Google</button>
-            <button id="browserDuck" class="secondary-button"><i class="fa-solid fa-duck mr-1.5 text-amber-500"></i> DuckDuckGo</button>
-          </div>
-        </div>`;
-
-    case "notepad":
-      return `
-        <div class="flex items-center justify-between px-3.5 py-2.5 bg-black/20 border-b border-white/10">
-          <span class="text-xs text-gray-400 font-medium"><i class="fa-solid fa-file-lines mr-1.5"></i> Notes.txt</span>
-          <div class="flex gap-2">
-            <button id="noteDownload" class="secondary-button py-1.5 px-3 text-xs"><i class="fa-solid fa-download mr-1"></i> Export</button>
-            <button id="noteClear" class="secondary-button py-1.5 px-3 text-xs">Clear</button>
-          </div>
-        </div>
-        <textarea id="noteArea" class="flex-1 w-full bg-transparent p-4 text-sm outline-none resize-none font-mono" spellcheck="true">${escapeHTML(noteText)}</textarea>
-        <div class="px-3.5 py-1.5 text-[11px] text-gray-500 border-t border-white/10 bg-black/10">Autosaved in browser storage</div>`;
-
-    case "calculator":
-      return `
-        <div class="max-w-xs w-full mx-auto flex-1 flex flex-col justify-center p-4">
-          <div id="calcScreen" class="bg-black/50 border border-white/15 rounded-xl p-4 text-right text-3xl font-mono mb-4 overflow-x-auto text-white shadow-inner">0</div>
-          <div class="grid grid-cols-4 gap-2.5">
-            ${["C","(",")","/","7","8","9","*","4","5","6","-","1","2","3","+","0",".","⌫","="].map(v =>
-              `<button class="calc-btn p-3.5 rounded-xl font-bold transition text-sm ${v === "=" ? "text-white" : ""}" style="background:${v==="="? "var(--accent)" : ["+","-","*","/"].includes(v) ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.08)"}" data-value="${v}">${v==="*"?"×":v==="/"?"÷":v}</button>`
-            ).join("")}
-          </div>
-        </div>`;
-
-    case "addwebsite":
-      return `
-        <div class="p-6 overflow-y-auto max-w-md mx-auto w-full">
-          <h3 class="font-bold text-base mb-1">Add Website as App</h3>
-          <p class="text-xs text-gray-400 mb-6">Create a custom desktop icon shortcut for any website.</p>
-          <form id="addWebsiteForm" class="space-y-4">
-            <div>
-              <label class="text-xs text-gray-400 block mb-1.5 font-medium">App Name</label>
-              <input id="newAppName" class="ui-input" placeholder="e.g., GitHub, YouTube" required maxlength="35">
-            </div>
-            <div>
-              <label class="text-xs text-gray-400 block mb-1.5 font-medium">Website URL</label>
-              <input id="newAppUrl" class="ui-input" placeholder="https://github.com" required>
-            </div>
-            <div>
-              <label class="text-xs text-gray-400 block mb-1.5 font-medium">Custom Icon URL (Optional)</label>
-              <input id="newAppIcon" class="ui-input" placeholder="Leave blank to auto-detect favicon">
-            </div>
-            <div class="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10">
-              <img id="newAppPreview" src="${faviconForSafeFallback()}" class="w-10 h-10 object-contain rounded-lg" alt="">
-              <div>
-                <div class="text-xs font-semibold">Icon Preview</div>
-                <div class="text-[10px] text-gray-400">Updates automatically from website domain</div>
-              </div>
-            </div>
-            <button class="ui-button w-full py-3" type="submit">
-              <i class="fa-solid fa-plus mr-1.5"></i> Add Shortcut to Desktop
-            </button>
-          </form>
-        </div>`;
-
-    case "settings":
-      return getSettingsHTML();
-
-    default:
-      if (app.custom) return getCustomAppHTML(app);
-      return `<div class="p-6 text-sm text-gray-400">Application not found.</div>`;
-  }
-}
-
-/* =====================================================
-   APP LOGIC ROUTERS
-   ===================================================== */
-
-function initBrowser(body) {
-  const input = body.querySelector("#browserAddress");
-  const nav = (raw) => {
-    raw = raw.trim();
-    if (!raw) return;
-    let url = /^https?:\/\//i.test(raw) ? validWebURL(raw) : /^[\w-]+\.[a-z]{2,}/i.test(raw) ? validWebURL("https://" + raw) : "https://search.brave.com/search?q=" + encodeURIComponent(raw);
-    if (!url) { showToast("Invalid URL entered."); return; }
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  body.querySelector("#browserGo").onclick = () => nav(input.value);
-  input.onkeydown = e => { if (e.key === "Enter") nav(input.value); };
-  body.querySelector("#browserBrave").onclick = () => nav("https://search.brave.com");
-  body.querySelector("#browserGoogle").onclick = () => nav("https://google.com");
-  body.querySelector("#browserDuck").onclick = () => nav("https://duckduckgo.com");
-}
-
-function initNotepad(body) {
-  const ta = body.querySelector("#noteArea");
-  ta.oninput = () => { noteText = ta.value; saveNotes(); };
-  body.querySelector("#noteDownload").onclick = () => {
-    const blob = new Blob([noteText], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "AuraOS-Notes.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast("Notes exported successfully!");
-  };
-  body.querySelector("#noteClear").onclick = () => {
-    if (confirm("Clear all notes?")) {
-      noteText = "";
-      ta.value = "";
-      saveNotes();
-      showToast("Notes cleared.");
-    }
-  };
-}
-
-function initCalculator(body) {
-  const screen = body.querySelector("#calcScreen");
-  let expr = "0";
-  const refresh = () => { screen.textContent = expr; screen.scrollLeft = screen.scrollWidth; };
-
-  body.querySelectorAll(".calc-btn").forEach(btn => {
-    btn.onclick = () => {
-      const val = btn.dataset.value;
-      if (val === "C") expr = "0";
-      else if (val === "⌫") expr = expr.length > 1 ? expr.slice(0, -1) : "0";
-      else if (val === "=") {
-        try {
-          const res = Function(`'use strict'; return (${expr.replace(/×/g, "*").replace(/÷/g, "/")})`)();
-          if (!isFinite(res)) throw new Error();
-          expr = String(Number(res.toFixed(8)));
-        } catch { expr = "Error"; }
-      } else {
-        expr = (expr === "0" || expr === "Error") ? (["+", "*", "/", "."].includes(val) ? "0" + val : val) : expr + val;
-      }
-      refresh();
-    };
-  });
-}
-
-function initAddWebsite(body) {
-  const form = body.querySelector("#addWebsiteForm");
-  const urlIn = body.querySelector("#newAppUrl");
-  const iconIn = body.querySelector("#newAppIcon");
-  const preview = body.querySelector("#newAppPreview");
-
-  const updatePrev = () => {
-    const iconVal = iconIn.value.trim();
-    if (iconVal && validWebURL(iconVal)) preview.src = iconVal;
-    else {
-      const v = validWebURL(urlIn.value.trim());
-      preview.src = v ? faviconFor(v) : faviconForSafeFallback();
-    }
-  };
-
-  urlIn.oninput = updatePrev;
-  iconIn.oninput = updatePrev;
-
-  form.onsubmit = e => {
-    e.preventDefault();
-    const name = body.querySelector("#newAppName").value.trim();
-    const url = validWebURL(urlIn.value.trim());
-    if (!name || !url) { showToast("Please provide a valid name and URL."); return; }
-
-    const customIcon = iconIn.value.trim() ? validWebURL(iconIn.value.trim()) : faviconFor(url);
-    userApps.push({
-      id: "site_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-      name,
-      url,
-      icon: customIcon || faviconFor(url),
-      custom: true
-    });
-    saveApps();
-    renderDesktop();
-    showToast(`Added shortcut "${name}"!`);
-    form.reset();
-    preview.src = faviconForSafeFallback();
-  };
-}
-
-function getCustomAppHTML(app) {
-  return `
-    <div class="p-8 flex flex-col items-center justify-center text-center flex-1">
-      <img src="${escapeHTML(app.icon)}" class="w-20 h-20 object-contain rounded-2xl mb-4 border border-white/10 bg-black/30 p-2 shadow-lg" alt="" onerror="this.src='${faviconForSafeFallback()}'">
-      <h3 class="font-bold text-lg mb-1">${escapeHTML(app.name)}</h3>
-      <p class="text-xs text-gray-400 max-w-sm mb-6 truncate w-full">${escapeHTML(app.url)}</p>
-      <a href="${escapeHTML(app.url)}" target="_blank" rel="noopener noreferrer" class="ui-button flex items-center gap-2 px-6 py-3">
-        <i class="fa-solid fa-external-link-alt"></i> Open Website
-      </a>
-    </div>`;
-}
-
-function removeWebsite(id) {
-  userApps = userApps.filter(a => a.id !== id);
-  saveApps();
-  renderDesktop();
-  showToast("Shortcut removed.");
-}
-
-function getSettingsHTML() {
-  return `
-    <div class="p-6 space-y-6 overflow-y-auto">
-      <div>
-        <h3 class="font-bold text-sm mb-1.5">Desktop Wallpaper</h3>
-        <p class="text-xs text-gray-400 mb-3">Choose from curated wallpapers or paste a custom image link.</p>
-        <div class="grid grid-cols-3 gap-2.5 mb-3">
-          ${[
-            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1920&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1920&auto=format&fit=crop"
-          ].map(url => `<button class="wallpaper-btn h-16 rounded-xl bg-cover bg-center border border-white/20 hover:scale-105 transition shadow" style="background-image:url('${url}')" data-url="${url}"></button>`).join("")}
-        </div>
-        <div class="flex gap-2">
-          <input id="customWallpaperInput" class="ui-input" placeholder="Paste custom image URL...">
-          <button id="setWallpaperBtn" class="secondary-button">Apply</button>
-        </div>
-      </div>
-
-      <div class="border-t border-white/10 pt-5">
-        <h3 class="font-bold text-sm mb-1.5">Accent Color</h3>
-        <div class="flex gap-3 mt-3">
-          ${["#6366f1", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6"].map(hex => `
-            <button class="accent-btn w-9 h-9 rounded-full border-2 border-white/30 hover:scale-110 transition shadow" style="background:${hex}" data-color="${hex}"></button>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="border-t border-white/10 pt-5">
-        <h3 class="font-bold text-sm mb-1.5">Manage Custom Apps</h3>
-        <div id="settingsAppList" class="space-y-2 max-h-44 overflow-y-auto mt-2"></div>
-      </div>
-
-      <div class="border-t border-white/10 pt-5 flex justify-between items-center">
-        <div>
-          <div class="font-bold text-sm text-red-400">Factory Reset</div>
-          <div class="text-xs text-gray-400">Clear all data and custom web shortcuts.</div>
-        </div>
-        <button id="resetOsBtn" class="danger-button">Reset OS</button>
-      </div>
-    </div>`;
-}
-
-function initSettings(body) {
-  body.querySelectorAll(".wallpaper-btn").forEach(btn => {
-    btn.onclick = () => { settings.wallpaper = btn.dataset.url; saveSettings(); applySettings(); showToast("Wallpaper updated!"); };
-  });
-
-  body.querySelector("#setWallpaperBtn").onclick = () => {
-    const val = validWebURL(body.querySelector("#customWallpaperInput").value.trim());
-    if (!val) { showToast("Please enter a valid image URL."); return; }
-    settings.wallpaper = val;
-    saveSettings();
-    applySettings();
-    showToast("Wallpaper applied!");
-  };
-
-  body.querySelectorAll(".accent-btn").forEach(btn => {
-    btn.onclick = () => { settings.accent = btn.dataset.color; saveSettings(); applySettings(); showToast("Accent color updated!"); };
-  });
-
-  const listContainer = body.querySelector("#settingsAppList");
-  const renderList = () => {
-    if (userApps.length === 0) {
-      listContainer.innerHTML = `<div class="text-xs text-gray-500 italic py-2">No custom web apps added yet.</div>`;
-      return;
-    }
-    listContainer.innerHTML = userApps.map(app => `
-      <div class="app-list-item">
-        <img src="${escapeHTML(app.icon)}" alt="" onerror="this.src='${faviconForSafeFallback()}'">
-        <div class="details">
-          <div class="text-xs font-semibold">${escapeHTML(app.name)}</div>
-          <div class="text-[10px] text-gray-400">${escapeHTML(app.url)}</div>
-        </div>
-        <button class="danger-button text-xs py-1 px-2.5" onclick="removeWebsite('${app.id}'); const b = document.querySelector('#window_settings .window-body'); if(b) initSettings(b);">Remove</button>
-      </div>
-    `).join("");
-  };
-  renderList();
-
-  body.querySelector("#resetOsBtn").onclick = () => {
-    if (confirm("Are you sure you want to reset AuraOS? All custom apps and notes will be lost.")) {
-      StorageEngine.clear();
-      window.location.reload();
-    }
-  };
-}
-
-function initApp(app, body) {
-  if (app.id === "browser") initBrowser(body);
-  else if (app.id === "notepad") initNotepad(body);
-  else if (app.id === "calculator") initCalculator(body);
-  else if (app.id === "addwebsite") initAddWebsite(body);
-  else if (app.id === "settings") initSettings(body);
-}
-
-// Initial boot
-renderDesktop();
+/* ---------- BOOT ---------- */
+applySettings();renderDesktop();
 </script>
-
 </body>
 </html>
