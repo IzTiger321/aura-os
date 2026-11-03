@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>AuraOS | Web Operating System</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --accent: #6366f1;
+  --window-opacity: 0.94;
+  --window-blur: 24px;
+  --text: #f3f4f6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  user-select: none;
+  overscroll-behavior: none;
+  background-color: #0b0f19;
+}
+
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+input, textarea { user-select: text; }
+
+#osBody {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 0.4s ease;
+}
+
+.glass {
+  background: rgba(15, 23, 42, var(--window-opacity));
+  backdrop-filter: blur(var(--window-blur));
+  -webkit-backdrop-filter: blur(var(--window-blur));
+}
+
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.window.active {
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.window-header {
+  height: 44px;
+  min-height: 44px;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: grab;
+  touch-action: none;
+}
+
+.window-header:active { cursor: grabbing; }
+
+.window-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  height: 22px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+#windowContainer {
+  position: absolute;
+  inset: 44px 0 60px;
+  pointer-events: none;
+  z-index: 30;
+}
+
+#desktopArea {
+  position: absolute;
+  inset: 44px 0 60px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 92px);
+  grid-auto-rows: 104px;
+  align-content: start;
+  gap: 12px;
+  overflow: auto;
+}
+
+.desktop-icon {
+  width: 92px;
+  height: 100px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: center;
+  padding: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.desktop-icon.selected {
+  background: rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.desktop-icon img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 11px;
+}
+
+.desktop-icon .builtin-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.desktop-icon span {
+  font-size: 11px;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+#topbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 44px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(11, 15, 25, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  font-size: 12px;
+}
+
+#dock {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(11, 15, 25, 0.8);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#taskbarApps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 95%;
+  overflow-x: auto;
+  padding: 0 10px;
+}
+
+.task-button {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.task-button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+.task-button.open { background: rgba(255, 255, 255, 0.22); }
+
+.task-button.open::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.task-button img { width: 22px; height: 22px; object-fit: contain; }
+
+#startMenu {
+  position: absolute;
+  z-index: 120;
+  bottom: 70px;
+  left: 12px;
+  width: min(400px, calc(100vw - 24px));
+  max-height: min(580px, calc(100vh - 110px));
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(13, 18, 32, 0.96);
+  backdrop-filter: blur(30px);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.start-app {
+  padding: 12px 6px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  min-width: 0;
+  transition: background 0.15s;
+}
+
+.start-app:hover { background: rgba(255, 255, 255, 0.12); }
+.start-app img { width: 34px; height: 34px; object-fit: contain; margin: auto auto 6px; border-radius: 8px; }
+.start-app span { display: block; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ui-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: white;
+  outline: none;
+  font-size: 13px;
+}
+
+.ui-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25); }
+
+.ui-button {
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: filter 0.15s;
+}
+
+.ui-button:hover { filter: brightness(1.15); }
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  padding: 9px 13px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.secondary-button:hover { background: rgba(255, 255, 255, 0.18); }
+
+.danger-button {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 9px;
+  padding: 9px 13px;
+  font-size: 12px;
+}
+
+.app-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.app-list-item img { width: 30px; height: 30px; object-fit: contain; border-radius: 8px; }
+.app-list-item .details { flex: 1; min-width: 0; }
+.app-list-item .details div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#toast {
+  position: absolute;
+  z-index: 200;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  background: rgba(13, 18, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 12px;
+  display: none;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+@media(max-width: 640px) {
+  #desktopArea { padding: 12px; grid-template-columns: repeat(auto-fill, 80px); grid-auto-rows: 92px; gap: 8px; }
+  .desktop-icon { width: 80px; height: 90px; }
+  .desktop-icon img, .desktop-icon .builtin-icon { width: 38px; height: 38px; }
+  #startMenu { left: 8px; bottom: 66px; }
+}
+</style>
+</head>
+
+<body id="osBody">
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="flex items-center gap-3">
+    <button onclick="toggleStartMenu()" class="flex items-center gap-2 font-bold px-2 py-1 rounded-lg hover:bg-white/10 transition">
+      <i class="fa-solid fa-shapes text-base" style="color:var(--accent)"></i>
+      <span class="tracking-wide">AuraOS</span>
+    </button>
+    <span class="text-gray-500">|</span>
+    <span id="activeAppTitle" class="text-gray-300 font-medium">Desktop</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span id="storageStatus" class="hidden sm:inline text-xs text-gray-400">Cloud & Local Sync Active</span>
+    <span id="sysClock" class="font-mono font-medium">00:00</span>
+    <button onclick="powerOff()" title="Exit AuraOS / Return to Site" class="text-red-400 hover:text-red-300 transition p-1">
+      <i class="fa-solid fa-power-off text-sm"></i>
+    </button>
+  </div>
+</header>
+
+<!-- DESKTOP AREA -->
+<main id="desktopArea"></main>
+
+<!-- WINDOW CONTAINER -->
+<div id="windowContainer"></div>
+
+<!-- START MENU -->
+<div id="startMenu" hidden>
+  <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl grid place-items-center font-bold text-lg text-white shadow-lg" style="background:var(--accent)">A</div>
+      <div>
+        <div class="text-sm font-bold">AuraOS Web</div>
+        <div class="text-[11px] text-gray-400">GitHub Pages Edition</div>
+      </div>
+    </div>
+    <button onclick="powerOff()" class="danger-button py-1.5 px-3">
+      <i class="fa-solid fa-power-off mr-1"></i> Exit OS
+    </button>
+  </div>
+
+  <div class="text-[11px] uppercase tracking-wider text-gray-400 mb-2 font-semibold">Installed Applications</div>
+  <div id="startMenuApps" class="app-grid"></div>
+
+  <div class="border-t border-white/10 mt-4 pt-3 flex justify-between items-center text-xs text-gray-400">
+    <span>AuraOS v4.2 • GitHub Ready</span>
+    <button onclick="openApp('settings');closeStartMenu()" class="hover:text-white flex items-center gap-1 transition">
+      <i class="fa-solid fa-gear"></i> Settings
+    </button>
+  </div>
+</div>
+
+<!-- DOCK / TASKBAR -->
+<footer id="dock">
+  <div id="taskbarApps"></div>
+</footer>
+
+<div id="toast"></div>
+
+<!-- WINDOW TEMPLATE -->
+<template id="windowTemplate">
+  <section class="window glass">
+    <header class="window-header flex items-center justify-between px-3.5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <img class="app-icon-sm w-4 h-4 object-contain" alt="">
+        <span class="window-title text-xs font-semibold truncate">App</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="minimize-btn w-7 h-7 rounded-lg hover:bg-white/10 grid place-items-center text-gray-300 transition" title="Minimize">
+          <i class="fa-solid fa-minus text-xs"></i>
+        </button>
+        <button class="maximize-btn w-7 h-7 rounded-lg hover:bg-white/10 grid place-items-center text-gray-300 transition" title="Maximize">
+          <i class="fa-regular fa-square text-[10px]"></i>
+        </button>
+        <button class="close-btn w-7 h-7 rounded-lg hover:bg-red-500/20 hover:text-red-300 grid place-items-center text-gray-300 transition" title="Close">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+    </header>
+    <div class="window-body"></div>
+    <div class="resize-handle"></div>
+  </section>
+</template>
+
+<script>
+"use strict";
+
+// Obfuscated Home URL payload decoding to prevent static URL scraping
+const _0xUrl = "aHR0cHM6Ly9zaXRlcy5nb29nbGUuY29tL3ZpZXcvNzB1MGoyZ2xzZDE5LzA3WjE5VTUzUVNZUy8=";
+const HOME_URL = atob(_0xUrl);
+const STORAGE_PREFIX = "auraos_v4_";
+
+const DEFAULT_WALLPAPER =
+  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop";
+
+const DEFAULT_APPS = [
+  { id: "browser", name: "Browser", icon: "fa-solid fa-globe", color: "#fb923c", builtin: true },
+  { id: "notepad", name: "Notepad", icon: "fa-solid fa-note-sticky", color: "#fbbf24", builtin: true },
+  { id: "calculator", name: "Calculator", icon: "fa-solid fa-calculator", color: "#34d399", builtin: true },
+  { id: "addwebsite", name: "Add Website", icon: "fa-solid fa-circle-plus", color: "#818cf8", builtin: true },
+  { id: "settings", name: "Settings", icon: "fa-solid fa-gear", color: "#d1d5db", builtin: true }
+];
+
+let userApps = [];
+let activeWindows = {};
+let zIndexCounter = 100;
+let settings = {};
+let noteText = "";
+
+const $ = id => document.getElementById(id);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+function validWebURL(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function faviconFor(url) {
+  try {
+    const parsed = new URL(url);
+    return "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(parsed.hostname) + "&sz=128";
+  } catch {
+    return faviconForSafeFallback();
+  }
+}
+
+function faviconForSafeFallback() {
+  return "data:image/svg+xml," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="14" fill="#374151"/><text x="32" y="42" text-anchor="middle" font-size="32" fill="white" font-family="sans-serif">A</text></svg>'
+  );
+}
+
+/* =====================================================
+   STORAGE ENGINE (GitHub Pages / Browser LocalStorage)
+   ===================================================== */
+
+const StorageEngine = {
+  available: true,
+  init() {
+    try {
+      const testKey = STORAGE_PREFIX + "test";
+      localStorage.setItem(testKey, "ok");
+      localStorage.removeItem(testKey);
+    } catch {
+      this.available = false;
+    }
+  },
+  get(key, fallback) {
+    if (!this.available) return fallback;
+    try {
+      const val = localStorage.getItem(STORAGE_PREFIX + key);
+      return val === null ? fallback : JSON.parse(val);
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    if (!this.available) return false;
+    try {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  clear() {
+    if (!this.available) return;
+    try {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith(STORAGE_PREFIX))
+        .forEach(k => localStorage.removeItem(k));
+    } catch {}
+  }
+};
+
+StorageEngine.init();
+
+userApps = StorageEngine.get("apps", []);
+settings = StorageEngine.get("settings", {
+  wallpaper: DEFAULT_WALLPAPER,
+  accent: "#6366f1",
+  opacity: 0.94,
+  blur: 24
+});
+noteText = StorageEngine.get("notes", "Welcome to AuraOS on GitHub Pages!\n\nYour data persists automatically in this browser.");
+
+if (!Array.isArray(userApps)) userApps = [];
+
+function saveApps() { StorageEngine.set("apps", userApps); }
+function saveSettings() { StorageEngine.set("settings", settings); }
+function saveNotes() { StorageEngine.set("notes", noteText); }
+
+function applySettings() {
+  document.documentElement.style.setProperty("--accent", settings.accent);
+  document.documentElement.style.setProperty("--window-opacity", settings.opacity);
+  document.documentElement.style.setProperty("--window-blur", settings.blur + "px");
+  $("osBody").style.backgroundImage = `url("${settings.wallpaper}")`;
+  $("storageStatus").textContent = StorageEngine.available ? "Cloud & Local Sync Active" : "Storage Restricted";
+}
+
+applySettings();
+
+/* =====================================================
+   NOTIFICATIONS & CLOCK
+   ===================================================== */
+
+let toastTimer;
+function showToast(msg) {
+  const toast = $("toast");
+  toast.textContent = msg;
+  toast.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.style.display = "none", 2800);
+}
+
+function updateClock() {
+  $("sysClock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* =====================================================
+   APP REGISTRY
+   ===================================================== */
+
+function getAllApps() { return [...DEFAULT_APPS, ...userApps]; }
+function getApp(id) { return getAllApps().find(a => a.id === id); }
+
+function appIconHTML(app, size = 24) {
+  if (app.custom) {
+    return `<img src="${escapeHTML(app.icon)}" alt="" style="width:${size}px;height:${size}px;object-fit:contain;border-radius:6px" onerror="this.src='${faviconForSafeFallback()}'">`;
+  }
+  return `<i class="${escapeHTML(app.icon)}" style="font-size:${size}px;color:${escapeHTML(app.color)}"></i>`;
+}
+
+function renderDesktop() {
+  const desktop = $("desktopArea");
+  desktop.innerHTML = "";
+
+  getAllApps().forEach(app => {
+    const item = document.createElement("div");
+    item.className = "desktop-icon";
+    item.dataset.app = app.id;
+
+    const iconDiv = document.createElement("div");
+    if (app.custom) {
+      const img = document.createElement("img");
+      img.src = app.icon;
+      img.alt = "";
+      img.onerror = () => img.src = faviconForSafeFallback();
+      iconDiv.appendChild(img);
+    } else {
+      iconDiv.className = "builtin-icon";
+      iconDiv.innerHTML = `<i class="${escapeHTML(app.icon)}" style="color:${escapeHTML(app.color)}"></i>`;
+    }
+
+    const label = document.createElement("span");
+    label.textContent = app.name;
+
+    item.append(iconDiv, label);
+
+    item.addEventListener("click", e => {
+      e.stopPropagation();
+      document.querySelectorAll(".desktop-icon").forEach(el => el.classList.remove("selected"));
+      item.classList.add("selected");
+    });
+
+    item.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      openApp(app.id);
+    });
+
+    desktop.appendChild(item);
+  });
+
+  renderStartMenu();
+  renderTaskbar();
+}
+
+function renderStartMenu() {
+  const grid = $("startMenuApps");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  getAllApps().forEach(app => {
+    const btn = document.createElement("button");
+    btn.className = "start-app";
+    btn.innerHTML = appIconHTML(app, 32);
+
+    const span = document.createElement("span");
+    span.textContent = app.name;
+
+    btn.appendChild(span);
+    btn.onclick = () => {
+      openApp(app.id);
+      closeStartMenu();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function toggleStartMenu() {
+  const menu = $("startMenu");
+  menu.hidden = !menu.hidden;
+}
+
+function closeStartMenu() {
+  const menu = $("startMenu");
+  if (menu) menu.hidden = true;
+}
+
+function powerOff() {
+  window.location.href = EXIT_URL;
+}
+
+document.addEventListener("click", e => {
+  if (e.target === $("desktopArea")) {
+    document.querySelectorAll(".desktop-icon").forEach(el => el.classList.remove("selected"));
+    closeStartMenu();
+  }
+});
+
+/* =====================================================
+   TASKBAR & WINDOW MANAGER
+   ===================================================== */
+
+function renderTaskbar() {
+  const taskbar = $("taskbarApps");
+  taskbar.innerHTML = "";
+
+  Object.entries(activeWindows).forEach(([id, win]) => {
+    const app = getApp(id);
+    if (!app) return;
+
+    const btn = document.createElement("button");
+    btn.className = "task-button open";
+    btn.title = app.name;
+    btn.innerHTML = appIconHTML(app, 22);
+
+    btn.onclick = () => {
+      if (win.style.display === "none") {
+        win.style.display = "flex";
+        focusWindow(id);
+      } else if (win.classList.contains("active")) {
+        minimizeWindow(id);
+      } else {
+        focusWindow(id);
+      }
+    };
+    taskbar.appendChild(btn);
+  });
+}
+
+function calculateWindowSize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight - 104;
+  if (w < 640) {
+    return { width: Math.max(260, w - 16), height: Math.max(240, h - 16), left: 8, top: 52 };
+  }
+  const winW = Math.min(840, w - 60);
+  const winH = Math.min(580, h - 50);
+  return { width: winW, height: winH, left: (w - winW) / 2, top: (h - winH) / 2 + 22 };
+}
+
+function openApp(appId) {
+  closeStartMenu();
+
+  if (activeWindows[appId]) {
+    activeWindows[appId].style.display = "flex";
+    focusWindow(appId);
+    return;
+  }
+
+  const app = getApp(appId);
+  if (!app) return;
+
+  const frag = $("windowTemplate").content.cloneNode(true);
+  const win = frag.querySelector(".window");
+
+  win.id = "window_" + appId;
+  const size = calculateWindowSize();
+  win.style.width = size.width + "px";
+  win.style.height = size.height + "px";
+  win.style.left = size.left + "px";
+  win.style.top = size.top + "px";
+
+  win.querySelector(".window-title").textContent = app.name;
+  const iconSm = win.querySelector(".app-icon-sm");
+  if (app.custom) {
+    iconSm.src = app.icon;
+    iconSm.onerror = () => iconSm.src = faviconForSafeFallback();
+  } else {
+    iconSm.style.display = "none";
+  }
+
+  const body = win.querySelector(".window-body");
+  body.innerHTML = getAppContent(app);
+
+  win.querySelector(".close-btn").onclick = () => closeWindow(appId);
+  win.querySelector(".minimize-btn").onclick = () => minimizeWindow(appId);
+
+  let maximized = false;
+  let prevRect = {};
+  win.querySelector(".maximize-btn").onclick = () => {
+    if (!maximized) {
+      prevRect = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
+      win.style.left = "0px";
+      win.style.top = "44px";
+      win.style.width = "100%";
+      win.style.height = "calc(100% - 104px)";
+      win.style.borderRadius = "0";
+      maximized = true;
+    } else {
+      Object.assign(win.style, prevRect);
+      win.style.borderRadius = "14px";
+      maximized = false;
+    }
+  };
+
+  win.addEventListener("pointerdown", () => focusWindow(appId));
+  setupDragging(win);
+  setupResizing(win);
+
+  $("windowContainer").appendChild(win);
+  activeWindows[appId] = win;
+
+  initApp(app, body);
+  focusWindow(appId);
+  renderTaskbar();
+}
+
+function focusWindow(appId) {
+  const win = activeWindows[appId];
+  if (!win) return;
+  zIndexCounter++;
+  Object.values(activeWindows).forEach(w => w.classList.remove("active"));
+  win.classList.add("active");
+  win.style.zIndex = zIndexCounter;
+  $("activeAppTitle").textContent = getApp(appId)?.name || "Desktop";
+}
+
+function closeWindow(appId) {
+  if (!activeWindows[appId]) return;
+  activeWindows[appId].remove();
+  delete activeWindows[appId];
+  $("activeAppTitle").textContent = "Desktop";
+  renderTaskbar();
+}
+
+function minimizeWindow(appId) {
+  if (!activeWindows[appId]) return;
+  activeWindows[appId].style.display = "none";
+  activeWindows[appId].classList.remove("active");
+  $("activeAppTitle").textContent = "Desktop";
+  renderTaskbar();
+}
+
+/* =====================================================
+   DRAGGING & RESIZING
+   ===================================================== */
+
+function setupDragging(win) {
+  const header = win.querySelector(".window-header");
+  let startX = 0, startY = 0, startL = 0, startT = 0, dragging = false;
+
+  header.addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startL = win.offsetLeft;
+    startT = win.offsetTop;
+    header.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  header.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const l = startL + e.clientX - startX;
+    const t = startT + e.clientY - startY;
+    win.style.left = Math.max(0, Math.min(l, window.innerWidth - 80)) + "px";
+    win.style.top = Math.max(44, Math.min(t, window.innerHeight - 90)) + "px";
+  });
+
+  header.addEventListener("pointerup", () => dragging = false);
+}
+
+function setupResizing(win) {
+  const handle = win.querySelector(".resize-handle");
+  let startX = 0, startY = 0, startW = 0, startH = 0, resizing = false;
+
+  handle.addEventListener("pointerdown", e => {
+    resizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = win.offsetWidth;
+    startH = win.offsetHeight;
+    handle.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+    e.preventDefault();
+  });
+
+  handle.addEventListener("pointermove", e => {
+    if (!resizing) return;
+    win.style.width = Math.max(280, startW + e.clientX - startX) + "px";
+    win.style.height = Math.max(190, startH + e.clientY - startY) + "px";
+  });
+
+  handle.addEventListener("pointerup", () => resizing = false);
+}
+
+/* =====================================================
+   APPLICATIONS IMPLEMENTATION
+   ===================================================== */
+
+function getAppContent(app) {
+  switch (app.id) {
+    case "browser":
+      return `
+        <div class="p-3.5 flex gap-2.5 border-b border-white/10 bg-black/20">
+          <input id="browserAddress" class="ui-input flex-1" placeholder="Search Brave Search or enter URL" value="https://search.brave.com">
+          <button id="browserGo" class="ui-button">Browse</button>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div class="w-16 h-16 rounded-2xl grid place-items-center mb-4 text-2xl" style="background:rgba(99,102,241,0.2); color:var(--accent)">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <h3 class="font-bold text-lg mb-2">AuraOS Web Browser</h3>
+          <p class="text-xs text-gray-400 max-w-sm leading-relaxed mb-6">
+            Search with Brave or launch any web page directly in a new window tab.
+          </p>
+          <div class="flex flex-wrap justify-center gap-2.5">
+            <button id="browserBrave" class="secondary-button"><i class="fa-solid fa-shield-halved mr-1.5 text-orange-400"></i> Brave Search</button>
+            <button id="browserGoogle" class="secondary-button"><i class="fa-brands fa-google mr-1.5 text-blue-400"></i> Google</button>
+            <button id="browserDuck" class="secondary-button"><i class="fa-solid fa-duck mr-1.5 text-amber-500"></i> DuckDuckGo</button>
+          </div>
+        </div>`;
+
+    case "notepad":
+      return `
+        <div class="flex items-center justify-between px-3.5 py-2.5 bg-black/20 border-b border-white/10">
+          <span class="text-xs text-gray-400 font-medium"><i class="fa-solid fa-file-lines mr-1.5"></i> Notes.txt</span>
+          <div class="flex gap-2">
+            <button id="noteDownload" class="secondary-button py-1.5 px-3 text-xs"><i class="fa-solid fa-download mr-1"></i> Export</button>
+            <button id="noteClear" class="secondary-button py-1.5 px-3 text-xs">Clear</button>
+          </div>
+        </div>
+        <textarea id="noteArea" class="flex-1 w-full bg-transparent p-4 text-sm outline-none resize-none font-mono" spellcheck="true">${escapeHTML(noteText)}</textarea>
+        <div class="px-3.5 py-1.5 text-[11px] text-gray-500 border-t border-white/10 bg-black/10">Autosaved in browser storage</div>`;
+
+    case "calculator":
+      return `
+        <div class="max-w-xs w-full mx-auto flex-1 flex flex-col justify-center p-4">
+          <div id="calcScreen" class="bg-black/50 border border-white/15 rounded-xl p-4 text-right text-3xl font-mono mb-4 overflow-x-auto text-white shadow-inner">0</div>
+          <div class="grid grid-cols-4 gap-2.5">
+            ${["C","(",")","/","7","8","9","*","4","5","6","-","1","2","3","+","0",".","⌫","="].map(v =>
+              `<button class="calc-btn p-3.5 rounded-xl font-bold transition text-sm ${v === "=" ? "text-white" : ""}" style="background:${v==="="? "var(--accent)" : ["+","-","*","/"].includes(v) ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.08)"}" data-value="${v}">${v==="*"?"×":v==="/"?"÷":v}</button>`
+            ).join("")}
+          </div>
+        </div>`;
+
+    case "addwebsite":
+      return `
+        <div class="p-6 overflow-y-auto max-w-md mx-auto w-full">
+          <h3 class="font-bold text-base mb-1">Add Website as App</h3>
+          <p class="text-xs text-gray-400 mb-6">Create a custom desktop icon shortcut for any website.</p>
+          <form id="addWebsiteForm" class="space-y-4">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1.5 font-medium">App Name</label>
+              <input id="newAppName" class="ui-input" placeholder="e.g., GitHub, YouTube" required maxlength="35">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1.5 font-medium">Website URL</label>
+              <input id="newAppUrl" class="ui-input" placeholder="https://github.com" required>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1.5 font-medium">Custom Icon URL (Optional)</label>
+              <input id="newAppIcon" class="ui-input" placeholder="Leave blank to auto-detect favicon">
+            </div>
+            <div class="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10">
+              <img id="newAppPreview" src="${faviconForSafeFallback()}" class="w-10 h-10 object-contain rounded-lg" alt="">
+              <div>
+                <div class="text-xs font-semibold">Icon Preview</div>
+                <div class="text-[10px] text-gray-400">Updates automatically from website domain</div>
+              </div>
+            </div>
+            <button class="ui-button w-full py-3" type="submit">
+              <i class="fa-solid fa-plus mr-1.5"></i> Add Shortcut to Desktop
+            </button>
+          </form>
+        </div>`;
+
+    case "settings":
+      return getSettingsHTML();
+
+    default:
+      if (app.custom) return getCustomAppHTML(app);
+      return `<div class="p-6 text-sm text-gray-400">Application not found.</div>`;
+  }
+}
+
+/* =====================================================
+   APP LOGIC ROUTERS
+   ===================================================== */
+
+function initBrowser(body) {
+  const input = body.querySelector("#browserAddress");
+  const nav = (raw) => {
+    raw = raw.trim();
+    if (!raw) return;
+    let url = /^https?:\/\//i.test(raw) ? validWebURL(raw) : /^[\w-]+\.[a-z]{2,}/i.test(raw) ? validWebURL("https://" + raw) : "https://search.brave.com/search?q=" + encodeURIComponent(raw);
+    if (!url) { showToast("Invalid URL entered."); return; }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  body.querySelector("#browserGo").onclick = () => nav(input.value);
+  input.onkeydown = e => { if (e.key === "Enter") nav(input.value); };
+  body.querySelector("#browserBrave").onclick = () => nav("https://search.brave.com");
+  body.querySelector("#browserGoogle").onclick = () => nav("https://google.com");
+  body.querySelector("#browserDuck").onclick = () => nav("https://duckduckgo.com");
+}
+
+function initNotepad(body) {
+  const ta = body.querySelector("#noteArea");
+  ta.oninput = () => { noteText = ta.value; saveNotes(); };
+  body.querySelector("#noteDownload").onclick = () => {
+    const blob = new Blob([noteText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "AuraOS-Notes.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Notes exported successfully!");
+  };
+  body.querySelector("#noteClear").onclick = () => {
+    if (confirm("Clear all notes?")) {
+      noteText = "";
+      ta.value = "";
+      saveNotes();
+      showToast("Notes cleared.");
+    }
+  };
+}
+
+function initCalculator(body) {
+  const screen = body.querySelector("#calcScreen");
+  let expr = "0";
+  const refresh = () => { screen.textContent = expr; screen.scrollLeft = screen.scrollWidth; };
+
+  body.querySelectorAll(".calc-btn").forEach(btn => {
+    btn.onclick = () => {
+      const val = btn.dataset.value;
+      if (val === "C") expr = "0";
+      else if (val === "⌫") expr = expr.length > 1 ? expr.slice(0, -1) : "0";
+      else if (val === "=") {
+        try {
+          const res = Function(`'use strict'; return (${expr.replace(/×/g, "*").replace(/÷/g, "/")})`)();
+          if (!isFinite(res)) throw new Error();
+          expr = String(Number(res.toFixed(8)));
+        } catch { expr = "Error"; }
+      } else {
+        expr = (expr === "0" || expr === "Error") ? (["+", "*", "/", "."].includes(val) ? "0" + val : val) : expr + val;
+      }
+      refresh();
+    };
+  });
+}
+
+function initAddWebsite(body) {
+  const form = body.querySelector("#addWebsiteForm");
+  const urlIn = body.querySelector("#newAppUrl");
+  const iconIn = body.querySelector("#newAppIcon");
+  const preview = body.querySelector("#newAppPreview");
+
+  const updatePrev = () => {
+    const iconVal = iconIn.value.trim();
+    if (iconVal && validWebURL(iconVal)) preview.src = iconVal;
+    else {
+      const v = validWebURL(urlIn.value.trim());
+      preview.src = v ? faviconFor(v) : faviconForSafeFallback();
+    }
+  };
+
+  urlIn.oninput = updatePrev;
+  iconIn.oninput = updatePrev;
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const name = body.querySelector("#newAppName").value.trim();
+    const url = validWebURL(urlIn.value.trim());
+    if (!name || !url) { showToast("Please provide a valid name and URL."); return; }
+
+    const customIcon = iconIn.value.trim() ? validWebURL(iconIn.value.trim()) : faviconFor(url);
+    userApps.push({
+      id: "site_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+      name,
+      url,
+      icon: customIcon || faviconFor(url),
+      custom: true
+    });
+    saveApps();
+    renderDesktop();
+    showToast(`Added shortcut "${name}"!`);
+    form.reset();
+    preview.src = faviconForSafeFallback();
+  };
+}
+
+function getCustomAppHTML(app) {
+  return `
+    <div class="p-8 flex flex-col items-center justify-center text-center flex-1">
+      <img src="${escapeHTML(app.icon)}" class="w-20 h-20 object-contain rounded-2xl mb-4 border border-white/10 bg-black/30 p-2 shadow-lg" alt="" onerror="this.src='${faviconForSafeFallback()}'">
+      <h3 class="font-bold text-lg mb-1">${escapeHTML(app.name)}</h3>
+      <p class="text-xs text-gray-400 max-w-sm mb-6 truncate w-full">${escapeHTML(app.url)}</p>
+      <a href="${escapeHTML(app.url)}" target="_blank" rel="noopener noreferrer" class="ui-button flex items-center gap-2 px-6 py-3">
+        <i class="fa-solid fa-external-link-alt"></i> Open Website
+      </a>
+    </div>`;
+}
+
+function removeWebsite(id) {
+  userApps = userApps.filter(a => a.id !== id);
+  saveApps();
+  renderDesktop();
+  showToast("Shortcut removed.");
+}
+
+function getSettingsHTML() {
+  return `
+    <div class="p-6 space-y-6 overflow-y-auto">
+      <div>
+        <h3 class="font-bold text-sm mb-1.5">Desktop Wallpaper</h3>
+        <p class="text-xs text-gray-400 mb-3">Choose from curated wallpapers or paste a custom image link.</p>
+        <div class="grid grid-cols-3 gap-2.5 mb-3">
+          ${[
+            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1920&auto=format&fit=crop"
+          ].map(url => `<button class="wallpaper-btn h-16 rounded-xl bg-cover bg-center border border-white/20 hover:scale-105 transition shadow" style="background-image:url('${url}')" data-url="${url}"></button>`).join("")}
+        </div>
+        <div class="flex gap-2">
+          <input id="customWallpaperInput" class="ui-input" placeholder="Paste custom image URL...">
+          <button id="setWallpaperBtn" class="secondary-button">Apply</button>
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-5">
+        <h3 class="font-bold text-sm mb-1.5">Accent Color</h3>
+        <div class="flex gap-3 mt-3">
+          ${["#6366f1", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6"].map(hex => `
+            <button class="accent-btn w-9 h-9 rounded-full border-2 border-white/30 hover:scale-110 transition shadow" style="background:${hex}" data-color="${hex}"></button>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-5">
+        <h3 class="font-bold text-sm mb-1.5">Manage Custom Apps</h3>
+        <div id="settingsAppList" class="space-y-2 max-h-44 overflow-y-auto mt-2"></div>
+      </div>
+
+      <div class="border-t border-white/10 pt-5 flex justify-between items-center">
+        <div>
+          <div class="font-bold text-sm text-red-400">Factory Reset</div>
+          <div class="text-xs text-gray-400">Clear all data and custom web shortcuts.</div>
+        </div>
+        <button id="resetOsBtn" class="danger-button">Reset OS</button>
+      </div>
+    </div>`;
+}
+
+function initSettings(body) {
+  body.querySelectorAll(".wallpaper-btn").forEach(btn => {
+    btn.onclick = () => { settings.wallpaper = btn.dataset.url; saveSettings(); applySettings(); showToast("Wallpaper updated!"); };
+  });
+
+  body.querySelector("#setWallpaperBtn").onclick = () => {
+    const val = validWebURL(body.querySelector("#customWallpaperInput").value.trim());
+    if (!val) { showToast("Please enter a valid image URL."); return; }
+    settings.wallpaper = val;
+    saveSettings();
+    applySettings();
+    showToast("Wallpaper applied!");
+  };
+
+  body.querySelectorAll(".accent-btn").forEach(btn => {
+    btn.onclick = () => { settings.accent = btn.dataset.color; saveSettings(); applySettings(); showToast("Accent color updated!"); };
+  });
+
+  const listContainer = body.querySelector("#settingsAppList");
+  const renderList = () => {
+    if (userApps.length === 0) {
+      listContainer.innerHTML = `<div class="text-xs text-gray-500 italic py-2">No custom web apps added yet.</div>`;
+      return;
+    }
+    listContainer.innerHTML = userApps.map(app => `
+      <div class="app-list-item">
+        <img src="${escapeHTML(app.icon)}" alt="" onerror="this.src='${faviconForSafeFallback()}'">
+        <div class="details">
+          <div class="text-xs font-semibold">${escapeHTML(app.name)}</div>
+          <div class="text-[10px] text-gray-400">${escapeHTML(app.url)}</div>
+        </div>
+        <button class="danger-button text-xs py-1 px-2.5" onclick="removeWebsite('${app.id}'); const b = document.querySelector('#window_settings .window-body'); if(b) initSettings(b);">Remove</button>
+      </div>
+    `).join("");
+  };
+  renderList();
+
+  body.querySelector("#resetOsBtn").onclick = () => {
+    if (confirm("Are you sure you want to reset AuraOS? All custom apps and notes will be lost.")) {
+      StorageEngine.clear();
+      window.location.reload();
+    }
+  };
+}
+
+function initApp(app, body) {
+  if (app.id === "browser") initBrowser(body);
+  else if (app.id === "notepad") initNotepad(body);
+  else if (app.id === "calculator") initCalculator(body);
+  else if (app.id === "addwebsite") initAddWebsite(body);
+  else if (app.id === "settings") initSettings(body);
+}
+
+// Initial boot
+renderDesktop();
+</script>
+
+</body>
+</html>
